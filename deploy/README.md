@@ -90,6 +90,7 @@ Then, on the Pi, for either route:
 
 ```sh
 sudo install -m 0755 /tmp/ceems/ceems /usr/local/bin/ceems
+sudo install -m 0755 /tmp/ceems/deploy/update.sh /usr/local/bin/ceems-update
 ```
 
 ## 5. Create the service user
@@ -190,8 +191,26 @@ or needs a restart is also **check on the Pi**.
 
 ## Upgrading
 
-Get the new release's files into `/tmp/ceems` by either route of steps 3 and
-4. Only the binary is needed; skip `deploy/`. Then:
+On a Pi installed as above, one command downloads the latest release for the
+Pi's architecture, stops the service, installs the binary and starts the
+service again, then reports whether it came back up:
+
+```sh
+sudo ceems-update            # latest release
+sudo ceems-update v1.2.3     # a given version (prereleases too)
+sudo ceems-update -f         # reinstall even if already up to date
+```
+
+It needs internet access to GitHub. The archive is checked only by HTTPS: no
+checksums are published. The previous binary is kept as
+`/usr/local/bin/ceems.prev`, and the installed tag is recorded in
+`/var/lib/ceems/installed-version`. There is no automatic rollback; if the
+service does not come up, the script prints the manual rollback steps.
+
+The script also updates itself from the archive.
+
+To upgrade by hand instead, get the new release's files into `/tmp/ceems` by
+either route of steps 3 and 4. Only the binary is needed; skip `deploy/`. Then:
 
 ```sh
 sudo systemctl stop ceems

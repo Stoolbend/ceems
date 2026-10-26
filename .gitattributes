@@ -1,2 +1,3 @@
 deploy/** text eol=lf
 testdata/** -text
+*.sh text eol=lf
