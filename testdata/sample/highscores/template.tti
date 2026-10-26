@@ -1,0 +1,26 @@
+DE,High scores
+DS,ceems
+PN,40100
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 401 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OL,2,D]MC  HIGH SCORE TABLE
+OL,3,FSample league     GUpdated {updated...}
+OL,4,TZpppppppppppppppppppppppppppppppppppp
+OL,5,W######################################
+OL,7,L{c}{gname.........................}    
+OL,10,E   1ST          2ND           3RD
+OL,11,SZjjjjjjjjjj Rjjjjjjjjjj   Vjjjjjjjjjj
+OL,13,G {^p1name}   G{^p2name}    G{^p3name}
+OL,15,C {^p1scr.}   C{^p2scr.}    C{^p3scr.}
+OL,16,B {p1date.}   B{p2date.}    B{p3date.}
+OL,17,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OL,18,F4THG{p4name.}  C{p4scr..}  B{p4date.}
+OL,19,F5THG{p5name.}  C{p5scr..}  B{p5date.}
+OL,20,F6THG{p6name.}  C{p6scr..}  B{p6date.}
+OL,21,F7THG{p7name.}  C{p7scr..}  B{p7date.}
+OL,22,F8THG{p8name.}  C{p8scr..}  B{p8date.}
+OL,24,AIndex   BScores  CNext    FHelp
+FL,100,400,402,101,8ff,100

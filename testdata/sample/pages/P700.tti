@@ -1,0 +1,12 @@
+DE,Puzzles
+DS,ceems
+SP,/srv/teletext/P700.tti
+PN,70000
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 700 Mon 01 Jan  12:00:00
+OL,2,EGMPUZZLES                              
+OL,4,CGCrossword 701  Ladder 702  Quiz 703   
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,701,702,703,700,8ff,100

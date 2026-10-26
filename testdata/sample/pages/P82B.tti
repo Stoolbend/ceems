@@ -1,0 +1,21 @@
+DE,Test page
+DS,ceems
+SP,/srv/teletext/P82B.tti
+PN,82b00
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 82B Mon 01 Jan  12:00:00
+OL,2,MTest page 82B                          
+OL,6,E]\Series 82 item B                     
+OL,7,A]sample                                
+OL,9,MGeneric content                        
+OL,12,F]\Second block                         
+OL,13,D]text                                  
+OL,15,BGMore of the series                    
+OL,16,
+OL,18,ACDG]A\B]C\D                            
+OL,19,ACDG]E\F]G\H                            
+OL,20,ACDG]I\J]K\L                            
+OL,24,CNextDpageGin the series                
+FL,81a,82a,8ff,100,8ff,100

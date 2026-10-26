@@ -1,0 +1,32 @@
+DE,Rocket Rally
+DS,ceems
+PN,40100
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 401 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OL,2,D]MC  HIGH SCORE TABLE
+OL,3,FSample league     GUpdated 12 Oct 14:05
+OL,4,TZpppppppppppppppppppppppppppppppppppp
+OL,5,W######################################
+OL,6,                                        
+OL,7,LD]CRocket Rally                        
+OL,8,                                        
+OL,9,                                        
+OL,10,E   1ST          2ND           3RD
+OL,11,SZjjjjjjjjjj Rjjjjjjjjjj   Vjjjjjjjjjj
+OL,12,                                        
+OL,13,G Longname-   GNINECHARS    G   Bob   
+OL,14,                                        
+OL,15,C 12.34 sec   C1,234 sec    C 999 sec 
+OL,16,B 09 Dec 25   B08 Dec 25    B12 Feb 25
+OL,17,                                        
+OL,18,                                        
+OL,19,                                        
+OL,20,                                        
+OL,21,                                        
+OL,22,                                        
+OL,23,                                        
+OL,24,AIndex   BScores  CNext    FHelp
+FL,100,400,402,101,8ff,100

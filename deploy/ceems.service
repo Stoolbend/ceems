@@ -1,0 +1,24 @@
+[Unit]
+Description=CeeMS teletext page server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ceems
+Group=ceems
+ExecStart=/usr/local/bin/ceems serve -config /etc/ceems/ceems.json
+Restart=on-failure
+# /var/lib/ceems is the dataDir in the config.
+StateDirectory=ceems
+# /run is a tmpfs, so the pages directory is empty after a reboot. It is kept
+# across a service restart so vbit2 keeps reading the last pages.
+RuntimeDirectory=ceems-pages
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

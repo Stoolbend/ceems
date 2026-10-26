@@ -1,0 +1,32 @@
+DE,Castle Quest Deluxe
+DS,ceems
+PN,40600
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 401 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OL,2,D]MC  HIGH SCORE TABLE
+OL,3,FSample league     GUpdated 12 Oct 14:05
+OL,4,TZpppppppppppppppppppppppppppppppppppp
+OL,5,W######################################
+OL,6,                                        
+OL,7,LC]ACastle Quest Deluxe                 
+OL,8,                                        
+OL,9,                                        
+OL,10,E   1ST          2ND           3RD
+OL,11,SZjjjjjjjjjj Rjjjjjjjjjj   Vjjjjjjjjjj
+OL,12,                                        
+OL,13,G Longname-   GNINECHARS    G   Bob   
+OL,14,                                        
+OL,15,C   12.34     C  1,234      C   999   
+OL,16,B 09 Dec 25   B08 Dec 25    B12 Feb 25
+OL,17,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OL,18,F4THGAlice      C12.35m     B27 Jul 24
+OL,19,F5THGCy         C1b         B12 Oct 25
+OL,20,F6THGEve        C123.46b    B15 Mar 23
+OL,21,F7THGFay-Marie  C50,000     B12 Oct 25
+OL,22,F8THGGus        C123,456    B01 Jan 21
+OL,23,                                        
+OL,24,AIndex   BScores  CNext    FHelp
+FL,100,400,402,101,8ff,100

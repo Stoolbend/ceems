@@ -1,0 +1,32 @@
+DE,Weather
+DS,ceems
+SP,/srv/teletext/P121.tti
+PN,12100
+SC,0000
+PS,8000
+CT,1,T
+OL,7,FMonGSunny       C18C                   
+OL,8,                                        
+OL,9,FTueGCloudy      C16C                   
+OL,10,                                        
+OL,11,FWedGShowers     C14C                   
+OL,12,                                        
+OL,13,FThuGWindy       C15C                   
+OL,14,FFriGBright      C17C                   
+OL,15,                                        
+OL,16,FSatGRain later  C13C                   
+OL,17,                                        
+OL,18,AWarningGnone in force                  
+OL,19,ESunriseG06:02                          
+OL,20,ESunset G20:41                          
+OL,21,EMoon   Gwaxing                         
+OL,22,ETides  Gsee page 122                   
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 121 Mon 01 Jan  12:00:00
+OL,1,WZGWEATHER FOR THE WEEK                 
+OL,2,WZGSample forecast only                 
+OL,3,WZG--------------------                 
+OL,4,WZƒSun –¬»Ÿ’ãðG cloud                   
+OL,5,WGTemperatures in Celsius               
+OL,24,ABack to the index on page 100          
+FL,100,120,122,101,8ff,100

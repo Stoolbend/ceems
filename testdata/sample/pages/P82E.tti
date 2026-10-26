@@ -1,0 +1,19 @@
+DE,Test page
+DS,ceems
+SP,/srv/teletext/P82E.tti
+PN,82e00
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 82E Mon 01 Jan  12:00:00
+OL,2,DGM]Test page 82E                       
+OL,5,
+OL,6,
+OL,7,
+OL,8,
+OL,17,BBlank rows above                       
+OL,18,CGare written as empty                  
+OL,19,CGOL lines                              
+OL,20,CEnd                                    
+OL,24,AIndexF100                              
+FL,81a,82a,8ff,100,8ff,100

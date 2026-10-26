@@ -1,0 +1,25 @@
+PN,81000
+SC,0000
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 810 Mon 01 Jan  12:00:00
+OL,1,ISTATUS                                 
+OL,2,
+OL,3,FGService status                        
+OL,6,VInserter running                       
+OL,7,VPages loaded                           
+OL,8,VClock locked                           
+OL,9,VAWGMagazine 1 ok                       
+OL,10,VAWGMagazine 4 ok                       
+OL,11,VAWGMagazine 8 ok                       
+OL,12,AUWGLines 16                            
+OL,13,AEUWGPriority                           
+OL,14,EAll systems sample                     
+OL,15,ENo faults                              
+OL,16,ENo alarms                              
+OL,17,ENo warnings                            
+OL,18,EEnd of status                          
+OL,20,
+OL,21,AGEngineering only                      
+OL,24,ABack to engineeringF800                
+FL,800,704,705,100,8ff,100

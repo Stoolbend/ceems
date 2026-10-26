@@ -1,0 +1,34 @@
+DE,
+DS,ceems
+SP,/srv/teletext/P702.tti
+PN,70200
+SC,0000
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 702 Mon 01 Jan  12:00:00
+OL,1,WMWORD LADDER                           
+OL,2,Wj  1  COLD                             
+OL,3,Wj  2  CORD                             
+OL,4,Wj  3  CARD                             
+OL,5,Wj  4  WARD                             
+OL,6,Wj  5  WARM                             
+OL,7,Wj  6  FARM                             
+OL,8,Wj  7  FORM                             
+OL,9,Wj  8  FOAM                             
+OL,10,Wj  9  ROAM                             
+OL,11,Wj 10  ROAD                             
+OL,12,Wj 11  LOAD                             
+OL,13,Wj 12  LORD                             
+OL,14,W]A\????                                
+OL,15,W]A\?????                               
+OL,16,W]A\??????                              
+OL,17,W]A\???????                             
+OL,18,WChange one letter at a time            
+OL,19,Wto get from COLD to WARM               
+OL,20,WGAnswers on page 418                   
+OL,21,WGNext week: a new ladder               
+OL,22,WGSample puzzle only                    
+OL,23,WFBack: page 700                        
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,700,701,703,100,8ff,100

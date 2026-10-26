@@ -1,0 +1,133 @@
+/* The MS-DOS "Commander" theme (D-049, D-050). One global stylesheet; views add their own composition.
+   The teletext preview inherits from the elements below, so no rule here may set an inheritable text property
+   on an element that can sit above .tt-page (see theme.test.ts). */
+@font-face {
+  font-family: "Web437 IBM VGA 8x16";
+  src: url("./assets/fonts/Web437_IBM_VGA_8x16.woff") format("woff");
+  font-display: block;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --desk:#0000AA; --text:#AAAAAA; --bright:#FFFFFF; --accent:#FFFF55; --panel-text:#55FFFF;
+  --frame:#55FFFF; --bar:#00AAAA; --bar-text:#000000; --hotkey:#0000AA;
+  --current-bg:#000000; --current-text:#FFFFFF; --hover-bg:#55FFFF;
+  --dialog:#AAAAAA; --dialog-text:#000000; --dialog-frame:#000000;
+  --field-bg:#000000; --field-text:#FFFF55; --field-placeholder:#AAAAAA; --field-edge:#AAAAAA;
+  --error-bg:#AA0000; --error-text:#FFFFFF; --focus:#FFFF55;
+  --warning-bg:#AAAA00; --warning-text:#000000;
+  --shadow:#000000; --code-bg:#000000; --code-text:#FFFF55; --disabled:#AAAAAA;
+  --app-header: 2rem; /* the pinned menu bar's height; the page editor sizes itself from it */
+  --app-footer: 2rem; /* the pinned footer bar's height, likewise */
+  font-family: "Web437 IBM VGA 8x16", ui-monospace, Consolas, "DejaVu Sans Mono", monospace;
+  font-size: 16px;
+  line-height: 16px;
+  color-scheme: dark;
+  text-rendering: optimizeLegibility;
+  color: var(--text);
+  background: var(--desk);
+}
+/* the dark scheme: a black desktop with grey frames; bars, fields and dialogs are identical in both */
+:root[data-scheme="dark"] { --desk:#000000; --frame:#AAAAAA; --shadow:#555555; --disabled:#555555; }
+
+html { scrollbar-color: var(--bar) var(--desk); }
+body { margin: 0; }
+#app { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* layout */
+.container { width: 100%; max-width: 160ch; margin-inline: auto; padding-inline: 1ch; }
+.container-fluid { width: 100%; padding-inline: 1ch; }
+main { padding-block: 1em; flex: 1; }
+
+nav { display: flex; justify-content: space-between; align-items: center; }
+nav ul { display: flex; align-items: center; gap: 1ch; list-style: none; margin: 0; padding: 0; }
+a[aria-current="page"] { color: #FFFFFF; background: #000000; }
+
+/* text */
+h1, h2, h3 { font-size: 1em; font-weight: normal; color: var(--accent); margin: 1em 0 0; }
+p, ul, section, fieldset, table { margin-block: 0 1em; }
+small { color: var(--text); }
+a { color: var(--accent); }
+a:hover { color: var(--bright); }
+
+/* buttons */
+button, ::file-selector-button {
+  font: inherit; border: 0; border-radius: 0; padding: 0 1ch; line-height: 1em;
+  color: var(--bar-text); background: var(--bar); cursor: pointer;
+}
+button:hover, ::file-selector-button:hover { color: #000000; background: var(--hover-bg); }
+button[aria-pressed="true"] { color: var(--current-text); background: var(--current-bg); }
+button:disabled { background: none; color: var(--disabled); cursor: default; }
+
+/* menu and footer bars: a two-row bar holding one row of items, so the offset focus ring lands on the bar. The editor sizes itself from --app-header and --app-footer (D-040). */
+header, footer { position: sticky; z-index: 10; }
+header { top: 0; height: var(--app-header); color: var(--bar-text); background: var(--bar); }
+footer { bottom: 0; height: var(--app-footer); color: var(--dialog-text); background: var(--dialog); }
+:is(header, footer) nav { height: 100%; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+:is(header, footer) nav ul { gap: 0; }
+header h1 { margin: 0; padding: 0 1ch; color: inherit; }
+:is(header, footer) :is(a, button) { display: inline-block; padding: 0 1ch; color: inherit; background: none; text-decoration: none; }
+:is(header, footer) :is(a, button):hover { color: #000000; background: var(--hover-bg); }
+:is(header, footer) a[aria-current="page"], :is(header, footer) button[aria-pressed="true"] { color: var(--current-text); background: var(--current-bg); }
+:is(header, footer) :focus-visible { outline-color: #000000; }
+
+/* fields */
+input:not([type="checkbox"], [type="radio"]), select, textarea {
+  font: inherit; border: 0; border-radius: 0; padding: 0 1ch;
+  color: var(--field-text); background: var(--field-bg);
+  box-shadow: inset 0 0 0 1px var(--field-edge);
+}
+:is(input, select, textarea):disabled { color: var(--disabled); }
+::placeholder { color: var(--field-placeholder); }
+:is(input, select, textarea)[aria-invalid="true"] { color: var(--error-text); background: var(--error-bg); outline: 2px solid var(--focus); box-shadow: none; }
+
+/* checkboxes keep their native role and keyboard handling; only the glyph is replaced */
+input[type="checkbox"] { appearance: none; margin: 0; width: 3ch; height: 1em; padding: 0; background: none; color: inherit; cursor: pointer; }
+input[type="checkbox"]::before { content: "[ ]"; }
+input[type="checkbox"]:checked::before { content: "[X]"; }
+input[type="checkbox"]:disabled { color: var(--disabled); }
+input[type="radio"] { accent-color: var(--bar); }
+
+/* forms */
+label { display: block; }
+fieldset { border: 3px double var(--frame); padding: 0.5em 1ch; min-inline-size: 0; }
+legend { color: var(--accent); padding: 0 1ch; }
+fieldset[role="group"] { display: flex; border: 0; padding: 0; }
+fieldset[role="group"] > input { flex: 1; min-width: 0; }
+
+/* panels: a framed box with its title in the frame and a hard shadow. .dialog is the grey variant for login and password. */
+.panel, .dialog { margin: 0.5em 2ch 2em 0; padding: 1em 1ch; overflow-x: auto; box-shadow: 2ch 1em 0 var(--shadow); }
+legend :is(h1, h2) { margin: 0; color: inherit; }
+.dialog { color: var(--dialog-text); background: var(--dialog); border-color: var(--dialog-frame); width: fit-content; max-width: calc(100% - 2ch); margin-inline: auto; box-shadow: 0 0 0 0.5em var(--dialog), 2ch 1em 0 0.5em var(--shadow); }
+.dialog legend { color: var(--dialog-text); background: var(--dialog); }
+.dialog :disabled { color: #555555; }
+.dialog :focus-visible { outline-color: var(--dialog-frame); }
+
+/* tables */
+table { border-collapse: collapse; width: 100%; }
+th { color: var(--accent); font-weight: normal; text-align: left; border-bottom: 1px solid var(--frame); }
+td, th { padding: 0 1ch; color: var(--panel-text); }
+td + td, th + th { border-left: 1px solid var(--frame); }
+tr[aria-selected="true"] td { color: var(--bar-text); background: var(--bar); }
+td { vertical-align: top; }
+td ul { margin: 0; padding-left: 0; list-style: none; }
+tr[aria-selected="true"] a { color: var(--bar-text); }
+tr[aria-selected="true"] button:not(:hover, :disabled) { color: var(--panel-text); background: var(--desk); }
+tr[aria-selected="true"] :focus-visible { box-shadow: 0 0 0 2px var(--bar-text); }
+
+/* details and inline code */
+details > summary { cursor: pointer; list-style: none; }
+summary::before { content: "► "; }
+details[open] > summary::before { content: "▼ "; }
+kbd { color: #000000; background: #AAAAAA; padding: 0 0.5ch; }
+code { color: var(--code-text); background: var(--code-bg); padding: 0 0.5ch; }
+
+/* messages */
+[role="alert"] { color: var(--error-text); background: var(--error-bg); padding: 0 1ch; }
+[role="status"] { color: var(--bar-text); background: var(--bar); padding: 0 1ch; }
+.warning { color: var(--warning-text); background: var(--warning-bg); }
+.warning a { color: var(--warning-text); }
+
+/* focus */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }

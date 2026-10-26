@@ -1,0 +1,34 @@
+DE,Test card
+DS,ceems
+SP,/srv/teletext/P705.tti
+PN,70500
+SC,0000
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 705 Mon 01 Jan  12:00:00
+OL,1,
+OL,2,ETEST CARD                              
+OL,3,EESample                                
+OL,4,EWEcircle                               
+OL,5,EWEgrid                                 
+OL,6,QWRST TEST                              
+OL,7,EWEcentre                               
+OL,8,W 
+OL,9,WVjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjW       
+OL,10,Wjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj   
+OL,11,W555555555555555555555555555555555555   
+OL,12,Wjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj   
+OL,13,WW555555555555555555555555555555        
+OL,14,Wjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj   
+OL,15,W555555555555555555555555555555555555   
+OL,16,Wjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj   
+OL,17,W555555555555555555555555555555555555   
+OL,18,Wjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj   
+OL,19,ECWResolution chart                     
+OL,20,ECWCSample only                         
+OL,21,EWECheck focus                          
+OL,22,FEEngineering                           
+OL,23,FEPage 705                              
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,704,800,810,100,8ff,100

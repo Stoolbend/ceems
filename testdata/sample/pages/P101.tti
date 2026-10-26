@@ -1,0 +1,52 @@
+DE,Help
+DS,ceems
+SP,/srv/teletext/P101.tti
+PN,10100
+SC,0001
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 101 Mon 01 Jan  12:00:00
+OL,1,MFHELP                                  
+OL,2,W,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, 
+OL,4,GUse the four coloured keys to move     
+OL,5,Gbetween pages.                         
+OL,7,CRed    Ggoes to the index              
+OL,8,CGreen  Ggoes to the news               
+OL,9,CYellow Ggoes to the weather            
+OL,10,CCyan   Gcomes back here                
+OL,24,GHelp continues on the next subpage     
+PN,10100
+SC,0002
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 101 Mon 01 Jan  12:00:00
+OL,8,MGPage numbers                          
+OL,14,MGThree digits, magazines 1-8           
+OL,24,GHelp continues on the next subpage     
+PN,10100
+SC,0003
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 101 Mon 01 Jan  12:00:00
+OL,2,MBSubpages                              
+OL,6,GA page can rotate through subpages.    
+OL,7,GThis one has five.                     
+OL,24,GHelp continues on the next subpage     
+PN,10100
+SC,0004
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 101 Mon 01 Jan  12:00:00
+OL,3,MEReveal                                
+OL,6,GConcealed text: Xshown on REVEAL       
+OL,8,HGFlashing textIand steady text         
+OL,24,GHelp continues on the next subpage     
+PN,10100
+SC,0005
+PS,8000
+CT,8,T
+OL,0,        SAMPLE 101 Mon 01 Jan  12:00:00
+OL,2,Rllllllllllllllllllllllllllllllllllllll 
+OL,4,FThat is all the help there is.         
+OL,6,R\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ 
+OL,24,GBack to the start: subpage 1           

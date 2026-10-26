@@ -1,0 +1,142 @@
+DE,Index
+DS,ceems
+SP,/srv/teletext/P100.tti
+PN,10001
+SC,0001
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,MG  CeeMS SAMPLE SERVICE                
+OL,2,W,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, 
+OL,3,WZpppppppppppppppppppppppppppppppppppp  
+OL,4,WZjFNews......................C120      
+OL,5,WZjFWeather...................C121      
+OL,6,WZjFSport.....................C200      
+OL,7,WZjFTV guide..................C300      
+OL,8,WZjFHigh scores...............C400      
+OL,9,WZjFPuzzles...................C700      
+OL,10,WZjFTest card.................C705      
+OL,11,WZjFEngineering...............C800      
+OL,12,WZjFHelp......................C101      
+OL,13,WZjFContents..................C199      
+OL,14,WYjBSample entry 1WZ5555                
+OL,15,WYjBSample entry 2WZ5555                
+OL,16,WYjBSample entry 3WZ5555                
+OL,17,WYjBSample entry 4WZ5555                
+OL,18,WYjBSample entry 5WZ5555                
+OL,19,W###################################### 
+OL,20,Wssssssssssssssssssssssssssssssssssssss 
+OL,21,MCWelcome to the sample pages           
+OL,23,FEvery page here is inventedGfor tests  
+OL,24,ANews    BWeather CSport   FHelp        
+FL,120,121,200,101,8ff,100
+PN,10002
+SC,0002
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMNEWS IN BRIEF                         
+OL,4,TZppppppppppppppppppppppppppppppppppp   
+OL,9,FLocal library extends its hours        
+OL,10,FTown fair returns next weekend         
+OL,11,FNew cycle path opens by the river      
+OL,15,MGMore news on page 120                 
+OL,20,BUpdated every hour                     
+OL,21,BSample text only                       
+OL,23,CPage 2 of 7 FPress GINDEXF for the menu
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,120,121,200,101,8ff,100
+PN,10003
+SC,0003
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMWEATHER                               
+OL,4,TZppppppppppppppppppppppppppppppppppp   
+OL,6,CToday: sunny spells, light winds       
+OL,7,CTonight: clear and cool                
+OL,9,GNorth F14C   GSouth F17C               
+OL,10,GEast  F15C   GWest  F16C               
+OL,12,EPollen: low   EUV: moderate            
+OL,15,RS                  
+OL,16,TV                  
+OL,23,CPage 3 of 7 FPress GINDEXF for the menu
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,120,121,200,101,8ff,100
+PN,10004
+SC,0004
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMSPORT                                 
+OL,4,TZppppppppppppppppppppppppppppppppppp   
+OL,6,GFootball     C2 - 1                    
+OL,7,GCricket      C210 for 4                
+OL,8,GTennis       C6-3 6-4                  
+OL,10,HALATE SCOREIGsee page 200              
+OL,12,BFixtures on page 201                   
+OL,23,CPage 4 of 7 FPress GINDEXF for the menu
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,120,121,200,101,8ff,100
+PN,10005
+SC,0005
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMTV GUIDE                              
+OL,4,TZppppppppppppppppppppppppppppppppppp   
+OL,6,F18:00 GEvening news                    
+OL,7,F18:30 GGarden show                     
+OL,8,F19:00 GQuiz night                      
+OL,9,F20:00 GFilm: The Long Road             
+OL,10,F22:00 GLate news                       
+OL,12,XGHidden answer: 42                     
+OL,13,CPress REVEAL to show it                
+OL,23,CPage 5 of 7 FPress GINDEXF for the menu
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,120,121,200,101,8ff,100
+PN,10006
+SC,0006
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMTEST CARD                             
+OL,4,TZppppppppppppppppppppppppppppppppppp   
+OL,6,QRSTUVW            
+OL,7,QZRSTUV               
+OL,8,A]GWhite on red   \                     
+OL,9,D]CYellow on blue \                     
+OL,10,W^Aheld_                               
+OL,12,MFDouble height                         
+OL,14,LBNormal height                         
+OL,23,CPage 6 of 7 FPress GINDEXF for the menu
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,120,121,200,101,8ff,100
+PN,10007
+SC,0007
+PS,8000
+CT,10,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 100 Mon 01 Jan  12:00:00
+OL,1,TZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMABOUT                                 
+OL,4,TZppppppppppppppppppppppppppppppppppp   
+OL,6,GThis is a set of generic test pages    
+OL,7,Gmade for the CeeMS project.            
+OL,9,GThey show subpages, fastext links,     
+OL,10,Gmosaics, colours and double height.    
+OL,12,CNone of it is real news.               
+OL,23,CPage 7 of 7 FPress GINDEXF for the menu
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,120,121,200,101,8ff,100

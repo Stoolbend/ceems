@@ -1,0 +1,28 @@
+DE,Sport
+DS,ceems
+SP,/srv/teletext/P200.tti
+PN,20000
+SC,0000
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 200 Mon 01 Jan  12:00:00
+OL,1,RZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMSPORT                                 
+OL,4,RZppppppppppppppppppppppppppppppppppp   
+OL,5,Rssssssssssssssssssssssssssssssssssssss 
+OL,11,CFootball                               
+OL,12,CTown 2 Rovers 1                        
+OL,13,CUnited 0 City 0                        
+OL,14,CAthletic 3 Borough 2                   
+OL,15,ACricket                                
+OL,16,ACounty 210-4                           
+OL,17,AVisitors 198 all out                   
+OL,18,ATennis                                 
+OL,19,AFinal: 6-3 6-4                         
+OL,20,ADarts: 3-1                             
+OL,21,ABowls: 21-18                           
+OL,22,ARowing: won by a length                
+OL,23,AAll results are invented               
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,100,120,121,101,8ff,100

@@ -1,0 +1,15 @@
+# Local-only inputs provisioned into task worktrees (never committed)
+*.local.md
+.env
+.env.*
+dist/
+web/dist/
+web/node_modules/
+
+# Local runtime config and data
+/ceems.json
+/data/
+/pages/
+
+# Local credentials for tests (never committed)
+/testdata/secrets/

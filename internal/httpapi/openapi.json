@@ -1,0 +1,427 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ceems API",
+    "version": "1.0.0",
+    "description": "REST API v1 of the ceems teletext page editor. Integrators use the `pages` and `me` operations with an API key (`Authorization: Bearer <token>`). The `session` operations are for the browser app. The `admin` operations are session only: an API key gets 403. Every operation behind the session check can also answer 401 (no or bad credentials) and 429 (rate limited). Page writes take an optional `If-Match` header holding the page's `etag` (ADR 0004); a mismatch is 412, and DELETE requires it (428 without)."
+  },
+  "servers": [{"url": "/api/v1"}],
+  "tags": [
+    {"name": "session", "description": "Login, logout and the current identity."},
+    {"name": "pages", "description": "Read, replace, create and delete pages. Available to API keys within the key's granted page ranges."},
+    {"name": "admin", "description": "Users, grants, keys, templates, bindings, runs and settings. Session only; keys get 403."},
+    {"name": "meta", "description": "This document and the health check."}
+  ],
+  "security": [{"cookieAuth": []}, {"bearerAuth": []}],
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": ["session"], "summary": "Log in and set the session cookie", "security": [],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["username", "password"], "properties": {"username": {"type": "string"}, "password": {"type": "string"}}, "additionalProperties": false}}}},
+        "responses": {
+          "200": {"description": "Logged in", "content": {"application/json": {"schema": {"type": "object", "required": ["user", "systemName", "headerTemplate", "indexPage"], "properties": {"user": {"$ref": "#/components/schemas/User"}, "systemName": {"type": "string"}, "headerTemplate": {"type": "string"}, "indexPage": {"type": ["string", "null"], "description": "The index page when it is enabled, else null; present for a user session"}}, "additionalProperties": false}}}},
+          "400": {"$ref": "#/components/responses/E400"},
+          "401": {"$ref": "#/components/responses/E401"},
+          "429": {"$ref": "#/components/responses/E429"}
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": ["session"], "summary": "End the current session", "security": [{"cookieAuth": []}],
+        "responses": {"204": {"description": "Logged out"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["session"], "summary": "The calling user or key",
+        "responses": {"200": {"description": "A user session has `user` and no `key`; a key has `user: null` and `key`.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Me"}}}}, "401": {"$ref": "#/components/responses/E401"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/me/password": {
+      "put": {
+        "tags": ["session"], "summary": "Change the caller's own password; ends every session of the user", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["currentPassword", "newPassword"], "properties": {"currentPassword": {"type": "string"}, "newPassword": {"type": "string"}}, "additionalProperties": false}}}},
+        "responses": {"204": {"description": "Changed"}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/pages": {
+      "get": {
+        "tags": ["pages"], "summary": "List the pages the caller may read",
+        "responses": {"200": {"description": "Page summaries ordered by page number", "content": {"application/json": {"schema": {"type": "object", "required": ["pages"], "properties": {"pages": {"type": "array", "items": {"$ref": "#/components/schemas/PageSummary"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/pages/{mpp}": {
+      "parameters": [{"$ref": "#/components/parameters/mpp"}],
+      "get": {
+        "tags": ["pages"], "summary": "Get a page as a rows document",
+        "responses": {"200": {"description": "The page; `etag` is the value to send in If-Match", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Page"}}}}, "401": {"$ref": "#/components/responses/E401"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "put": {
+        "tags": ["pages"], "summary": "Replace a page's rows, cycle times, links, description and transmit flag",
+        "description": "`updatedAt`, `updatedBy`, `etag` and `binding` in the body are ignored. A row of null is left as it is. Without If-Match the page is replaced unchecked.",
+        "parameters": [{"$ref": "#/components/parameters/ifMatch"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Page"}}}},
+        "responses": {"200": {"description": "The saved page", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Page"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "412": {"$ref": "#/components/responses/E412"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "post": {
+        "tags": ["pages"], "summary": "Create a blank page",
+        "responses": {"201": {"description": "The new page", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Page"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "delete": {
+        "tags": ["pages"], "summary": "Delete a page; If-Match with the page's etag is required",
+        "parameters": [{"$ref": "#/components/parameters/ifMatch"}],
+        "responses": {"204": {"description": "Deleted"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "412": {"$ref": "#/components/responses/E412"}, "428": {"$ref": "#/components/responses/E428"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/pages/{mpp}/tti": {
+      "parameters": [{"$ref": "#/components/parameters/mpp"}],
+      "get": {
+        "tags": ["pages"], "summary": "Download the page's .tti file",
+        "responses": {"200": {"description": "The stored bytes", "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}}, "401": {"$ref": "#/components/responses/E401"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "put": {
+        "tags": ["pages"], "summary": "Replace a page with an uploaded .tti file of at most 256 KiB",
+        "parameters": [{"$ref": "#/components/parameters/ifMatch"}],
+        "requestBody": {"required": true, "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}},
+        "responses": {"200": {"description": "The saved page", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Page"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "412": {"$ref": "#/components/responses/E412"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/templates": {
+      "get": {
+        "tags": ["admin"], "summary": "List templates", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "Templates", "content": {"application/json": {"schema": {"type": "object", "required": ["templates"], "properties": {"templates": {"type": "array", "items": {"$ref": "#/components/schemas/TemplateSummary"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "post": {
+        "tags": ["admin"], "summary": "Create a template", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/Template"},
+        "responses": {"201": {"description": "The new template", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Template"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/templates/{id}": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "get": {
+        "tags": ["admin"], "summary": "Get a template", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The template", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Template"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "put": {
+        "tags": ["admin"], "summary": "Replace a template", "description": "409 is returned for a duplicate name, or when a binding using the template would be left with a slot it has no value for.", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/Template"},
+        "responses": {"200": {"description": "The saved template", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Template"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "delete": {
+        "tags": ["admin"], "summary": "Delete a template that no binding uses", "security": [{"cookieAuth": []}],
+        "responses": {"204": {"description": "Deleted"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/templates/{id}/tti": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "get": {
+        "tags": ["admin"], "summary": "Download a template's .tti file", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The stored bytes", "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/bindings": {
+      "get": {
+        "tags": ["admin"], "summary": "List bindings with their last run", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "Bindings", "content": {"application/json": {"schema": {"type": "object", "required": ["sheetsConfigured", "bindings"], "properties": {"sheetsConfigured": {"type": "boolean"}, "bindings": {"type": "array", "items": {"$ref": "#/components/schemas/BindingSummary"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "post": {
+        "tags": ["admin"], "summary": "Create a binding and its generated page", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/Binding"},
+        "responses": {"201": {"description": "The new binding", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Binding"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/bindings/{id}": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "get": {
+        "tags": ["admin"], "summary": "Get a binding", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The binding", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Binding"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "put": {
+        "tags": ["admin"], "summary": "Replace a binding; a changed `mpp` moves its page (409 `exists` when the new number is taken)", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/Binding"},
+        "responses": {"200": {"description": "The saved binding", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Binding"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "delete": {
+        "tags": ["admin"], "summary": "Delete a binding", "security": [{"cookieAuth": []}],
+        "responses": {"204": {"description": "Deleted"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/bindings/{id}/run": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "post": {
+        "tags": ["admin"], "summary": "Run a binding now; a failed run is still 200 with outcome `failed`", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The run", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Run"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "429": {"$ref": "#/components/responses/E429"}, "503": {"$ref": "#/components/responses/E503"}}
+      }
+    },
+    "/bindings/{id}/runs": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "get": {
+        "tags": ["admin"], "summary": "List a binding's recent runs", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "Runs, newest first", "content": {"application/json": {"schema": {"type": "object", "required": ["runs"], "properties": {"runs": {"type": "array", "items": {"$ref": "#/components/schemas/Run"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["admin"], "summary": "List users with their grants", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "Users", "content": {"application/json": {"schema": {"type": "object", "required": ["users"], "properties": {"users": {"type": "array", "items": {"$ref": "#/components/schemas/AdminUser"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "post": {
+        "tags": ["admin"], "summary": "Create a user with a random password, returned once", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["username"], "properties": {"username": {"type": "string"}, "admin": {"type": "boolean"}}, "additionalProperties": false}}}},
+        "responses": {"201": {"description": "The new user and its password", "content": {"application/json": {"schema": {"type": "object", "required": ["user", "password"], "properties": {"user": {"$ref": "#/components/schemas/AdminUser"}, "password": {"type": "string"}}, "additionalProperties": false}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "409": {"$ref": "#/components/responses/E409"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/users/{id}": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "put": {
+        "tags": ["admin"], "summary": "Disable or enable a user", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["disabled"], "properties": {"disabled": {"type": "boolean"}}, "additionalProperties": false}}}},
+        "responses": {"200": {"description": "The user", "content": {"application/json": {"schema": {"type": "object", "required": ["user"], "properties": {"user": {"$ref": "#/components/schemas/AdminUser"}}, "additionalProperties": false}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/users/{id}/reset-password": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "post": {
+        "tags": ["admin"], "summary": "Give a user a new random password, returned once; ends their sessions", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The new password", "content": {"application/json": {"schema": {"type": "object", "required": ["password"], "properties": {"password": {"type": "string"}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/users/{id}/grants": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "post": {
+        "tags": ["admin"], "summary": "Give a user a page-range grant", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/Grant"},
+        "responses": {"201": {"description": "The grant", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Grant"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/grants/{id}": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "delete": {
+        "tags": ["admin"], "summary": "Delete a grant of a user or key", "security": [{"cookieAuth": []}],
+        "responses": {"204": {"description": "Deleted"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/keys": {
+      "get": {
+        "tags": ["admin"], "summary": "List API keys with their grants", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "Keys; the secret is never shown", "content": {"application/json": {"schema": {"type": "object", "required": ["keys"], "properties": {"keys": {"type": "array", "items": {"$ref": "#/components/schemas/Key"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "post": {
+        "tags": ["admin"], "summary": "Create an API key; its token is returned once", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}, "readOnly": {"type": "boolean"}, "expiresAt": {"type": ["string", "null"]}}, "additionalProperties": false}}}},
+        "responses": {"201": {"description": "The key and its token. A key can do nothing until it has a grant.", "content": {"application/json": {"schema": {"type": "object", "required": ["key", "token"], "properties": {"key": {"$ref": "#/components/schemas/Key"}, "token": {"type": "string"}}, "additionalProperties": false}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/keys/{id}": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "delete": {
+        "tags": ["admin"], "summary": "Revoke a key; revoking again is also 204", "security": [{"cookieAuth": []}],
+        "responses": {"204": {"description": "Revoked"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/keys/{id}/grants": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "post": {
+        "tags": ["admin"], "summary": "Give a key a page-range grant", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/Grant"},
+        "responses": {"201": {"description": "The grant", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Grant"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/fastext-groups": {
+      "get": {
+        "tags": ["admin"], "summary": "List fastext groups by name", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "Groups", "content": {"application/json": {"schema": {"type": "object", "required": ["groups"], "properties": {"groups": {"type": "array", "items": {"$ref": "#/components/schemas/FastextGroup"}}}, "additionalProperties": false}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "post": {
+        "tags": ["admin"], "summary": "Create a fastext group", "description": "A paged group needs two different slots from 0 to 3; a static group has null slots. A default group clears the previous default. 409 is returned for a duplicate name.", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/FastextGroup"},
+        "responses": {"201": {"description": "The new group", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FastextGroup"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/fastext-groups/{id}": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "get": {
+        "tags": ["admin"], "summary": "Get a fastext group", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The group", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FastextGroup"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "put": {
+        "tags": ["admin"], "summary": "Replace a fastext group's settings", "description": "Rewrites the links and row 24 of every member page. The members are set by `PUT /fastext-groups/{id}/pages`.", "security": [{"cookieAuth": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/FastextGroup"},
+        "responses": {"200": {"description": "The saved group", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FastextGroup"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "delete": {
+        "tags": ["admin"], "summary": "Delete a fastext group", "description": "Its members keep their last links, which are manual again, and are left with an empty row 24.", "security": [{"cookieAuth": []}],
+        "responses": {"204": {"description": "Deleted"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/fastext-groups/{id}/pages": {
+      "parameters": [{"$ref": "#/components/parameters/id"}],
+      "put": {
+        "tags": ["admin"], "summary": "Set the member pages of a fastext group, in order", "description": "Pages not listed are detached: they keep their last links and are left with an empty row 24. 409 `in_group` is returned for a page that is in another group; 404 for an unknown page.", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["pages"], "properties": {"pages": {"type": "array", "items": {"type": "string", "description": "Three hex digits, 100 to 8FF"}}}, "additionalProperties": false}}}},
+        "responses": {"200": {"description": "The group", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FastextGroup"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": ["admin"], "summary": "Get the system settings", "security": [{"cookieAuth": []}],
+        "responses": {"200": {"description": "The settings; `pagesDir` is the config value and read-only", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Settings"}}}}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
+      },
+      "put": {
+        "tags": ["admin"], "summary": "Replace the system settings", "description": "Every field is required and validated in full; a refusal names the key, stores nothing and writes no file. The last write wins (no etag). A change rewrites `vbit.conf` in the pages directory when `vbitConf` is on.", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SettingsInput"}}}},
+        "responses": {"200": {"description": "The stored settings", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Settings"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": ["meta"], "summary": "This document",
+        "responses": {"200": {"description": "The OpenAPI 3.1 document", "content": {"application/json": {"schema": {"type": "object"}}}}, "401": {"$ref": "#/components/responses/E401"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
+    "/site": {
+      "get": {
+        "tags": ["meta"], "summary": "The system name, public so the login page can show it", "security": [],
+        "responses": {"200": {"description": "The stored system name", "content": {"application/json": {"schema": {"type": "object", "required": ["systemName"], "properties": {"systemName": {"type": "string"}}, "additionalProperties": false}}}}}
+      }
+    },
+    "/healthz": {
+      "servers": [{"url": "/"}],
+      "get": {
+        "tags": ["meta"], "summary": "Health check, served at /healthz outside the /api/v1 prefix", "security": [],
+        "responses": {"200": {"description": "The server is up", "content": {"application/json": {"schema": {"type": "object", "required": ["status"], "properties": {"status": {"type": "string", "enum": ["ok"]}}, "additionalProperties": false}}}}}
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {"type": "apiKey", "in": "cookie", "name": "ceems_session"},
+      "bearerAuth": {"type": "http", "scheme": "bearer", "description": "An API key token, shown once when the key is created."}
+    },
+    "parameters": {
+      "mpp": {"name": "mpp", "in": "path", "required": true, "description": "Three hex digits, 100 to 8FF. Out of range, or outside the caller's grants, is 404.", "schema": {"type": "string", "pattern": "^[1-8][0-9A-Fa-f]{2}$"}},
+      "id": {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}},
+      "ifMatch": {"name": "If-Match", "in": "header", "required": false, "description": "The page's etag from GET, with or without double quotes. A mismatch is 412.", "schema": {"type": "string"}}
+    },
+    "requestBodies": {
+      "FastextGroup": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["name", "paged", "links", "default"], "properties": {"name": {"type": "string", "description": "1 to 40 characters"}, "paged": {"type": "boolean"}, "links": {"type": "array", "items": {"type": "string"}, "minItems": 4, "maxItems": 4, "description": "The red, green, yellow and cyan links: three hex digits with magazine 1 to 8, or 8ff"}, "texts": {"type": ["array", "null"], "items": {"type": "string"}, "minItems": 4, "maxItems": 4, "description": "Optional; absent or null means four empty texts. The red, green, yellow and cyan link texts for row 24 as decoded cells: each 0 to 9 characters from U+0000 to U+007F, control codes one character each. A Prev or Next slot's text is stored but not shown"}, "prevSlot": {"type": ["integer", "null"], "description": "0 to 3 for a paged group, null or absent for a static one"}, "nextSlot": {"type": ["integer", "null"], "description": "0 to 3 and different from prevSlot for a paged group, null or absent for a static one"}, "default": {"type": "boolean", "description": "New pages join the default group; at most one group is the default"}}, "additionalProperties": false}}}},
+      "Template": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["name", "tti"], "properties": {"name": {"type": "string"}, "tti": {"type": "string", "description": "Base64 of the .tti file"}, "rowRules": {"type": "object", "additionalProperties": {"type": "string"}}}, "additionalProperties": false}}}},
+      "Binding": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["name", "templateId", "mpp", "source", "static"], "properties": {"name": {"type": "string"}, "templateId": {"type": "integer"}, "mpp": {"type": "string"}, "source": {"$ref": "#/components/schemas/Source"}, "static": {"type": "object", "additionalProperties": {"type": "string"}}}, "additionalProperties": false}}}},
+      "Grant": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["lo", "hi", "access"], "properties": {"lo": {"type": "string"}, "hi": {"type": "string"}, "access": {"type": "string", "enum": ["read", "write"]}}, "additionalProperties": false}}}}
+    },
+    "responses": {
+      "E400": {"description": "Bad request (`bad_request` or a more specific code)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E401": {"description": "No or invalid credentials (`unauthorized`; `invalid_credentials` on login)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E403": {"description": "Not allowed (`forbidden`): a key on an admin or session-only operation, a read-only key, or a page outside write access", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E404": {"description": "No such resource (`not_found`); a page outside the caller's read access is also 404", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E409": {"description": "Conflict (`exists`, `conflict`, `in_group`, `generated_page`, `in_use`, `page_bound`, `revoked`, `self`, `run_in_progress`)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E412": {"description": "If-Match does not match the stored page (`precondition_failed`)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E413": {"description": "Body larger than 256 KiB (`too_large`)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E428": {"description": "If-Match is required to confirm the delete (`confirmation_required`)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E429": {"description": "Rate limited (`rate_limited`)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+      "E503": {"description": "The scheduler is not running (`scheduler_off`)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+    },
+    "schemas": {
+      "Error": {"type": "object", "required": ["error"], "properties": {"error": {"type": "object", "required": ["code", "message"], "properties": {"code": {"type": "string"}, "message": {"type": "string"}}, "additionalProperties": false}}, "additionalProperties": false},
+      "Subpage": {"type": "object", "required": ["cycleSeconds", "cycleMode", "links", "rows"], "properties": {
+        "cycleSeconds": {"type": ["integer", "null"]},
+        "cycleMode": {"type": ["string", "null"], "enum": ["T", "C", null]},
+        "links": {"type": ["array", "null"], "items": {"type": "string"}},
+        "rows": {"type": "array", "items": {"type": ["string", "null"]}, "description": "25 entries, index = row; null means no OL line"}
+      }, "additionalProperties": false},
+      "Page": {"type": "object", "required": ["mpp", "description", "transmit", "updatedAt", "updatedBy", "etag", "subpages", "binding", "fastextGroup", "canWrite"], "properties": {
+        "mpp": {"type": "string"}, "description": {"type": "string"}, "transmit": {"type": "boolean"},
+        "updatedAt": {"type": "string"}, "updatedBy": {"type": "string"}, "etag": {"type": "string"},
+        "subpages": {"type": "array", "items": {"$ref": "#/components/schemas/Subpage"}},
+        "binding": {"type": ["object", "null"], "required": ["id", "name"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}}, "additionalProperties": false},
+        "fastextGroup": {"type": ["object", "null"], "description": "Read-only; ignored on PUT", "required": ["id", "name", "paged"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}, "paged": {"type": "boolean"}}, "additionalProperties": false},
+        "canWrite": {"type": "boolean", "description": "Whether the caller may write this page; ignored on PUT"}
+      }, "additionalProperties": false},
+      "PageSummary": {"type": "object", "required": ["mpp", "description", "subpages", "transmit", "updatedAt", "updatedBy"], "properties": {
+        "mpp": {"type": "string"}, "description": {"type": "string"}, "subpages": {"type": "integer"}, "transmit": {"type": "boolean"},
+        "updatedAt": {"type": "string"}, "updatedBy": {"type": "string"}
+      }, "additionalProperties": false},
+      "User": {"type": "object", "required": ["id", "username", "admin"], "properties": {"id": {"type": "integer"}, "username": {"type": "string"}, "admin": {"type": "boolean"}}, "additionalProperties": false},
+      "SettingsInput": {"type": "object", "required": ["systemName", "vbitConf", "headerTemplate", "initialTeletextPage", "rowAdaptiveMode", "linesPerField", "magazinePriority", "statusDisplay", "indexPageEnabled", "indexPage"], "properties": {
+        "systemName": {"type": "string", "description": "1 to 40 printable ASCII characters"},
+        "vbitConf": {"type": "boolean", "description": "Write vbit.conf into the pages directory"},
+        "headerTemplate": {"type": "string", "description": "32 cells, each 0x00 to 0x7F; % starts %%#, %%a, %%b, %d, %e, %m, %y, %H, %M or %S"},
+        "initialTeletextPage": {"type": "string", "description": "Page 100 to 8FF, optionally :SSSS; stored upper-case"},
+        "rowAdaptiveMode": {"type": "boolean"},
+        "linesPerField": {"type": "integer", "description": "1 to 32"},
+        "magazinePriority": {"type": "string", "description": "Eight values 1 to 9, comma separated, for magazines 8,1,2,3,4,5,6,7"},
+        "statusDisplay": {"type": "string", "description": "0 to 20 printable ASCII characters, no spaces and no semicolon"},
+        "indexPageEnabled": {"type": "boolean", "description": "Every page's sixth fastext link is indexPage; turning it on or changing the page rewrites the pages"},
+        "indexPage": {"type": "string", "description": "Three hex digits, magazine 1 to 8 but not 8ff; stored lower-case"}
+
+      }, "additionalProperties": false},
+      "Settings": {"type": "object", "required": ["systemName", "pagesDir", "vbitConf", "headerTemplate", "initialTeletextPage", "rowAdaptiveMode", "linesPerField", "magazinePriority", "statusDisplay", "indexPageEnabled", "indexPage"], "properties": {
+        "pagesDir": {"type": "string", "description": "The config file's pagesDir; read-only"},
+        "systemName": {"type": "string", "description": "1 to 40 printable ASCII characters"},
+        "vbitConf": {"type": "boolean", "description": "Write vbit.conf into the pages directory"},
+        "headerTemplate": {"type": "string", "description": "32 cells, each 0x00 to 0x7F; % starts %%#, %%a, %%b, %d, %e, %m, %y, %H, %M or %S"},
+        "initialTeletextPage": {"type": "string", "description": "Page 100 to 8FF, optionally :SSSS; stored upper-case"},
+        "rowAdaptiveMode": {"type": "boolean"},
+        "linesPerField": {"type": "integer", "description": "1 to 32"},
+        "magazinePriority": {"type": "string", "description": "Eight values 1 to 9, comma separated, for magazines 8,1,2,3,4,5,6,7"},
+        "statusDisplay": {"type": "string", "description": "0 to 20 printable ASCII characters, no spaces and no semicolon"},
+        "indexPageEnabled": {"type": "boolean", "description": "Every page's sixth fastext link is indexPage; turning it on or changing the page rewrites the pages"},
+        "indexPage": {"type": "string", "description": "Three hex digits, magazine 1 to 8 but not 8ff; stored lower-case"}
+
+      }, "additionalProperties": false},
+      "FastextGroup": {"type": "object", "required": ["id", "name", "paged", "links", "texts", "prevSlot", "nextSlot", "default", "pages"], "properties": {
+        "id": {"type": "integer"}, "name": {"type": "string"}, "paged": {"type": "boolean"}, "links": {"type": "array", "items": {"type": "string"}},
+        "texts": {"type": "array", "items": {"type": "string"}, "description": "Four row 24 link texts, decoded cells"},
+        "prevSlot": {"type": ["integer", "null"]}, "nextSlot": {"type": ["integer", "null"]}, "default": {"type": "boolean"},
+        "pages": {"type": "array", "items": {"type": "object", "required": ["mpp", "description"], "properties": {"mpp": {"type": "string"}, "description": {"type": "string"}}, "additionalProperties": false}}
+      }, "additionalProperties": false},
+      "Me": {"type": "object", "required": ["user"], "properties": {
+        "systemName": {"type": "string", "description": "Present for a user session, absent for a key"},
+        "headerTemplate": {"type": "string", "description": "Present for a user session, absent for a key"},
+        "indexPage": {"type": ["string", "null"], "description": "The index page when it is enabled, else null; present for a user session"},
+        "user": {"type": ["object", "null"], "required": ["id", "username", "admin"], "properties": {"id": {"type": "integer"}, "username": {"type": "string"}, "admin": {"type": "boolean"}}, "additionalProperties": false},
+        "key": {"type": ["object", "null"], "required": ["id", "name", "readOnly"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "readOnly": {"type": "boolean"}}, "additionalProperties": false}
+      }, "additionalProperties": false},
+      "Grant": {"type": "object", "required": ["id", "lo", "hi", "access"], "properties": {"id": {"type": "integer"}, "lo": {"type": "string"}, "hi": {"type": "string"}, "access": {"type": "string", "enum": ["read", "write"]}}, "additionalProperties": false},
+      "AdminUser": {"type": "object", "required": ["id", "username", "admin", "disabled", "createdAt", "grants"], "properties": {
+        "id": {"type": "integer"}, "username": {"type": "string"}, "admin": {"type": "boolean"}, "disabled": {"type": "boolean"}, "createdAt": {"type": "string"},
+        "grants": {"type": "array", "items": {"$ref": "#/components/schemas/Grant"}}
+      }, "additionalProperties": false},
+      "Key": {"type": "object", "required": ["id", "name", "readOnly", "createdBy", "createdAt", "expiresAt", "revokedAt", "lastUsedAt", "grants"], "properties": {
+        "id": {"type": "string"}, "name": {"type": "string"}, "readOnly": {"type": "boolean"}, "createdBy": {"type": "string"}, "createdAt": {"type": "string"},
+        "expiresAt": {"type": ["string", "null"]}, "revokedAt": {"type": ["string", "null"]}, "lastUsedAt": {"type": ["string", "null"]},
+        "grants": {"type": "array", "items": {"$ref": "#/components/schemas/Grant"}}
+      }, "additionalProperties": false},
+      "Slot": {"type": "object", "required": ["name", "sub", "row", "col", "width", "align"], "properties": {
+        "name": {"type": "string"}, "sub": {"type": "integer"}, "row": {"type": "integer"}, "col": {"type": "integer"}, "width": {"type": "integer"},
+        "align": {"type": "string", "enum": ["left", "centre", "right"]}
+      }, "additionalProperties": false},
+      "Template": {"type": "object", "required": ["id", "name", "rowRules", "slots", "tti"], "properties": {
+        "id": {"type": "integer"}, "name": {"type": "string"}, "rowRules": {"type": "object", "additionalProperties": {"type": "string"}},
+        "slots": {"type": "array", "items": {"$ref": "#/components/schemas/Slot"}}, "tti": {"type": "string", "description": "Base64 of the .tti file"}
+      }, "additionalProperties": false},
+      "TemplateSummary": {"type": "object", "required": ["id", "name", "slotCount"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}, "slotCount": {"type": "integer"}}, "additionalProperties": false},
+      "Source": {"type": "object", "required": ["sheet", "range", "columns", "rows"], "properties": {
+        "sheet": {"type": "string"}, "range": {"type": "string"}, "columns": {"type": "array", "items": {"type": "string"}},
+        "rows": {"type": "integer"}, "format": {"type": ["object", "null"], "additionalProperties": {"type": "string"}}
+      }, "additionalProperties": false},
+      "Run": {"type": "object", "required": ["id", "actor", "startedAt", "finishedAt", "outcome", "error"], "properties": {
+        "id": {"type": "integer"}, "actor": {"type": "string"}, "startedAt": {"type": "string"}, "finishedAt": {"type": "string"},
+        "outcome": {"type": "string", "enum": ["ok", "failed"]}, "error": {"type": "string"}
+      }, "additionalProperties": false},
+      "BindingSummary": {"type": "object", "required": ["id", "name", "templateId", "templateName", "mpp", "lastRun"], "properties": {
+        "id": {"type": "integer"}, "name": {"type": "string"}, "templateId": {"type": "integer"}, "templateName": {"type": "string"}, "mpp": {"type": "string"},
+        "lastRun": {"type": ["object", "null"], "required": ["id", "actor", "startedAt", "finishedAt", "outcome", "error"], "properties": {
+          "id": {"type": "integer"}, "actor": {"type": "string"}, "startedAt": {"type": "string"}, "finishedAt": {"type": "string"},
+          "outcome": {"type": "string", "enum": ["ok", "failed"]}, "error": {"type": "string"}
+        }, "additionalProperties": false}
+      }, "additionalProperties": false},
+      "Binding": {"type": "object", "required": ["id", "name", "templateId", "templateName", "mpp", "source", "static"], "properties": {
+        "id": {"type": "integer"}, "name": {"type": "string"}, "templateId": {"type": "integer"}, "templateName": {"type": "string"}, "mpp": {"type": "string"},
+        "source": {"$ref": "#/components/schemas/Source"}, "static": {"type": "object", "additionalProperties": {"type": "string"}}
+      }, "additionalProperties": false}
+    }
+  }
+}

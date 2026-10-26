@@ -1,0 +1,30 @@
+DE,
+PN,70300
+SC,0000
+PS,8000
+CT,8,T
+OL,1,BQW1. How many legs has a spider?       
+OL,2,BQW2. What colour is a ripe banana?     
+OL,3,BQW3. How many days in a week?          
+OL,4,BQW4. What is frozen water called?      
+OL,5,BQW5. Which planet is nearest the sun?  
+OL,6,QW------------                          
+OL,7,QW--------------                        
+OL,8,QW----------------                      
+OL,9,QW------------------                    
+OL,10,QW--------------------                  
+OL,11,QW----------------------                
+OL,12,WAnswer 1: on page 418                  
+OL,13,WAnswer 2: on page 418                  
+OL,14,WAnswer 3: on page 418                  
+OL,15,WAnswer 4: on page 418                  
+OL,16,WAnswer 5: on page 418                  
+OL,17,WAnswer 6: on page 418                  
+OL,18,WAnswer 7: on page 418                  
+OL,19,WAnswer 8: on page 418                  
+OL,20,WAnswer 9: on page 418                  
+OL,21,MFWQuiz time                            
+OL,22,MFWQuiz time                            
+OL,23,FWScores are not kept                   
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,700,701,702,100,8ff,100

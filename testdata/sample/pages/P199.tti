@@ -1,0 +1,20 @@
+DE,Contents
+DS,ceems
+SP,/srv/teletext/P199.tti
+PN,19900
+SC,0000
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 199 Mon 01 Jan  12:00:00
+OL,2,FGCONTENTS                              
+OL,4,CGNews ............ 120                 
+OL,6,CGWeather ......... 121                 
+OL,8,CSport ........... 200                  
+OL,10,CTV guide ........ 300                  
+OL,12,CHigh scores ..... 400                  
+OL,14,CPuzzles ......... 700                  
+OL,16,CTest card ....... 705                  
+OL,18,CEngineering ..... 800                  
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,100,120,121,101,8ff,100

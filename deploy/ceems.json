@@ -1,0 +1,9 @@
+{
+  "listen": "127.0.0.1:8080",
+  "dataDir": "/var/lib/ceems",
+  "pagesDir": "/run/ceems-pages",
+  "logLevel": "info",
+  "googleKeyFile": "/etc/ceems/google-api-key.json",
+  "secureCookies": false,
+  "trustedProxies": []
+}

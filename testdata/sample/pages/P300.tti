@@ -1,0 +1,28 @@
+DE,TV guide
+DS,ceems
+SP,/srv/teletext/P300.tti
+PN,30000
+SC,0000
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 300 Mon 01 Jan  12:00:00
+OL,1,UZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMTV GUIDE                              
+OL,4,UZppppppppppppppppppppppppppppppppppp   
+OL,5,Ussssssssssssssssssssssssssssssssssssss 
+OL,8,FTonight on channel one                 
+OL,9,TjG18:00 Evening news                   
+OL,10,TjG18:30 Garden show                    
+OL,11,EG19:00 Tj Quiz night                   
+OL,12,BT20:00 Film                            
+OL,14,MGLate film at 22:30                    
+OL,16,CTimes are examples                     
+OL,17,Q##############################         
+OL,18,Qpppppppppppppppppppppppppppppp         
+OL,19,Q,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,         
+OL,20,BQ//////////////////////////////        
+OL,21,BGListings change daily                 
+OL,22,
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,100,120,121,101,8ff,100

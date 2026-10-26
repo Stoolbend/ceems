@@ -1,0 +1,1 @@
+-- The schema starts here. Tables arrive with the page store.

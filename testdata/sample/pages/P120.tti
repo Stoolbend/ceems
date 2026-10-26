@@ -1,0 +1,41 @@
+DE,News
+DS,ceems
+SP,/srv/teletext/P120.tti
+PN,12001
+SC,0001
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 120 Mon 01 Jan  12:00:00
+OL,1,QZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMNEWS                                  
+OL,4,QZppppppppppppppppppppppppppppppppppp   
+OL,6,CLibrary extends its hours              
+OL,7,GThe town library will open until       
+OL,8,Geight in the evening from Monday.      
+OL,10,CFair returns                           
+OL,11,GThe summer fair is back next           
+OL,12,Gweekend on the green.                  
+OL,14,CRiver path                             
+OL,15,GA new cycle path now links the         
+OL,16,Gstation and the park.                  
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,100,120,121,101,8ff,100
+PN,12002
+SC,0002
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 120 Mon 01 Jan  12:00:00
+OL,1,QZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  
+OL,2,GMNEWS                                  
+OL,4,QZppppppppppppppppppppppppppppppppppp   
+OL,6,CBus timetable changes                  
+OL,7,GRoute 4 runs every twenty minutes      
+OL,8,Gon weekdays from next month.           
+OL,10,CAllotments                             
+OL,11,GTen new plots are available.           
+OL,12,GApply at the council office.           
+OL,14,ENews is sample text only               
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,100,120,121,101,8ff,100

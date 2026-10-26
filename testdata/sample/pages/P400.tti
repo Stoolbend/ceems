@@ -1,0 +1,19 @@
+DE,High scores
+DS,ceems
+SP,/srv/teletext/P400.tti
+PN,40000
+SC,0000
+PS,8000
+CT,8,T
+OL,28,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+OL,0,        SAMPLE 400 Mon 01 Jan  12:00:00
+OL,2,AMCGHIGH SCORES                         
+OL,4,CGRocket Rally .... 401                 
+OL,6,CGTurbo Track ..... 402                 
+OL,8,CGMaze Muncher .... 403                 
+OL,10,CGHaunted Hall .... 404                 
+OL,12,CGRobo Rumble ..... 405                 
+OL,14,CGCastle Quest .... 406                 
+OL,16,CGScores are samples                    
+OL,24,AIndex   BNews    CWeather FHelp        
+FL,100,120,121,101,8ff,100
