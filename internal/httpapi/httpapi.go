@@ -78,6 +78,7 @@ func newAPI(ui fs.FS, log *slog.Logger, db *store.Store, secureCookies bool, run
 	a.sessionRoute(apiMux, "GET /api/v1/pages", a.listPages)
 	a.pageRoute(apiMux, "GET /api/v1/pages/{mpp}", false, a.getPage)
 	a.pageRoute(apiMux, "GET /api/v1/pages/{mpp}/tti", false, a.downloadPage)
+	a.pageRoute(apiMux, "GET /api/v1/preview/{mpp}", false, a.getPreview)
 	a.pageRoute(apiMux, "PUT /api/v1/pages/{mpp}", true, a.updatePage)
 	a.pageRoute(apiMux, "PUT /api/v1/pages/{mpp}/tti", true, a.uploadPage)
 	a.pageRoute(apiMux, "POST /api/v1/pages/{mpp}", true, a.createPage)

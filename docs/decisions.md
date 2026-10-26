@@ -1817,3 +1817,29 @@ Date: 2026-10-26. Owner request; extends D-073.
 - The Formats box takes one `column=formatter` entry per line. A comma does
   not separate entries; the form says so and the Help page shows a
   two-entry example (T-083).
+
+### D-077 — Page preview: a dedicated preview document and a TV-style player
+
+Date: 2026-10-26. Owner request; research Q-027.
+
+- A Preview button on the page list and on the Bindings list opens a dialog
+  that plays the saved page as a TV would: the live header row, subpages
+  rotating on their own timing, flashing text. Concealed text is shown
+  dimmed, as in the editor. Fastext links are drawn but do nothing, and there
+  are no playback controls (owner, for now).
+- The preview has its own read-only endpoint, `GET /api/v1/preview/{mpp}`,
+  not the editor's page document or the admin settings. It returns only what
+  a viewer needs: the page number, description, header template and, per
+  subpage, the rows and how many seconds to show it. A later anonymous viewer
+  serves the same document for transmitting pages (owner). For now it needs
+  a signed-in caller who may read the page.
+- Subpage seconds come from the CT line. `CT,n,T` is n seconds. `CT,n,C`
+  is n times the estimated cycle time of the page's magazine. A subpage with
+  no CT line gets 8 seconds, the default CeeMS writes for a new page.
+- The server estimates a magazine's cycle time from the transmitting pages
+  and the vbit2 settings with the formula from Q-027 (vbit2 at 4948857). It
+  is computed on each request; one pass over at most 800 pages is cheap
+  enough for a Pi 1. It is exact with one busy magazine and typically within
+  about 15 to 50 per cent with several, which is close enough for a preview.
+- The player component takes the preview document as input and fetches
+  nothing itself, so the later viewer can reuse it.

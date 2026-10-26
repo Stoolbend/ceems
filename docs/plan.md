@@ -492,8 +492,20 @@ notices its dependencies require (D-071).
   rewrite (T-081) was abandoned.
 - [x] M12-5 Agent process files moved to the private `ceems-dev` repository;
   fixture line endings fixed `light` (D-075, T-082).
-- [ ] M12-6 Formatter fixes: decimals option, one-per-line Formats guidance
+- [x] M12-6 Formatter fixes: decimals option, one-per-line Formats guidance
   `standard` (D-076, T-083).
+
+## M13 — Page preview
+
+Outcome: a page can be watched as a TV shows it without opening the editor
+(D-077).
+
+- [ ] M13-1 Preview document at `GET /api/v1/preview/{mpp}`, with the
+  magazine cycle-time estimate `standard` (D-077, T-085).
+- [ ] M13-2 Teletext player component, Preview dialog, Preview buttons on
+  the page list and Bindings list `standard` (D-077, T-086).
+- [ ] M13-3 Public read-only teletext viewer for anonymous visitors
+  `critical`. Not yet planned; needs owner decisions on access.
 
 ## M5 — Cut-over
 

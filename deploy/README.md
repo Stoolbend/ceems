@@ -23,7 +23,7 @@ raspi-teletext upstream.
 
 A Pi 1 or Pi Zero (ARMv6) needs 32-bit Raspberry Pi OS Lite and the
 `ceems-vX.Y.Z-linux-armv6.tar.gz` archive instead of the arm64 one. ceems on
-these boards is untested on hardware. Whether vbit2 and raspi-teletext run
+these boards is known to run on a Pi 1. Whether vbit2 and raspi-teletext run
 there must be checked against their own documentation.
 
 ## 2. Install vbit2 and raspi-teletext

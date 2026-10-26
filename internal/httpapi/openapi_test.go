@@ -403,6 +403,10 @@ func TestOpenAPIResponses(t *testing.T) {
 	c.call("key get 100", "GET /pages/{mpp}", "ro", page("100"), "", 200)
 	c.call("key get 81A 404", "GET /pages/{mpp}", "ro", page("81A"), "", 404)
 	c.call("page get out of range", "GET /pages/{mpp}", "admin", page("0FF"), "", 404)
+	c.call("preview get", "GET /preview/{mpp}", "admin", "/preview/100", "", 200)
+	c.call("key preview 100", "GET /preview/{mpp}", "ro", "/preview/100", "", 200)
+	c.call("key preview 81A 404", "GET /preview/{mpp}", "ro", "/preview/81A", "", 404)
+	c.call("preview anonymous", "GET /preview/{mpp}", "anon", "/preview/100", "", 401)
 	c.call("page tti", "GET /pages/{mpp}/tti", "admin", page("100")+"/tti", "", 200)
 	c.call("key tti 81A 404", "GET /pages/{mpp}/tti", "ro", page("81A")+"/tti", "", 404)
 

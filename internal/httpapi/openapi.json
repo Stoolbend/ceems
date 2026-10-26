@@ -45,6 +45,14 @@
         "responses": {"204": {"description": "Changed"}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "429": {"$ref": "#/components/responses/E429"}}
       }
     },
+    "/preview/{mpp}": {
+      "parameters": [{"$ref": "#/components/parameters/mpp"}],
+      "get": {
+        "tags": ["pages"], "summary": "Get a page for playback as a TV shows it",
+        "description": "Rows and display seconds per subpage. `CT,n,C` seconds are n times an estimate of the page's magazine cycle time, rounded to one decimal; no CT line is 8. Holds nothing an editor needs.",
+        "responses": {"200": {"description": "The preview document", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Preview"}}}}, "401": {"$ref": "#/components/responses/E401"}, "404": {"$ref": "#/components/responses/E404"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
     "/pages": {
       "get": {
         "tags": ["pages"], "summary": "List the pages the caller may read",
@@ -338,6 +346,14 @@
         "binding": {"type": ["object", "null"], "required": ["id", "name"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}}, "additionalProperties": false},
         "fastextGroup": {"type": ["object", "null"], "description": "Read-only; ignored on PUT", "required": ["id", "name", "paged"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}, "paged": {"type": "boolean"}}, "additionalProperties": false},
         "canWrite": {"type": "boolean", "description": "Whether the caller may write this page; ignored on PUT"}
+      }, "additionalProperties": false},
+      "Preview": {"type": "object", "required": ["mpp", "description", "headerTemplate", "subpages"], "properties": {
+        "mpp": {"type": "string"}, "description": {"type": "string"},
+        "headerTemplate": {"type": "string", "description": "The site header template, or empty when none is set"},
+        "subpages": {"type": "array", "items": {"type": "object", "required": ["rows", "seconds"], "properties": {
+          "rows": {"type": "array", "items": {"type": ["string", "null"]}, "minItems": 25, "maxItems": 25, "description": "As in Page: null is a missing line"},
+          "seconds": {"type": "number", "description": "How long to show the subpage"}
+        }, "additionalProperties": false}}
       }, "additionalProperties": false},
       "PageSummary": {"type": "object", "required": ["mpp", "description", "subpages", "transmit", "updatedAt", "updatedBy"], "properties": {
         "mpp": {"type": "string"}, "description": {"type": "string"}, "subpages": {"type": "integer"}, "transmit": {"type": "boolean"},
