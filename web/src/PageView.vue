@@ -7,6 +7,7 @@ import PageEditor from './editor/PageEditor.vue'
 import { PALETTE } from './editor/cells'
 import TeletextPage from './teletext/TeletextPage.vue'
 import { DEFAULT_HEADER, headerRow, vbitHeader } from './teletext/header'
+import { localTime } from './time'
 import { user } from './session'
 import { decode, encode } from './zxnet'
 
@@ -207,7 +208,7 @@ async function upload() {
         </p>
         <p>
           <label>Description <input v-model="description" maxlength="255" class="description" :disabled="locked" /></label>
-          <small>Updated {{ page.updatedAt }} by {{ page.updatedBy }}</small>
+          <small>Updated {{ localTime(page.updatedAt) }} by {{ page.updatedBy }}</small>
         </p>
         <nav class="tabs" aria-label="Subpages">
           <button v-for="(_, i) in edits" :key="i" type="button" :aria-pressed="i === current" @click="current = i">{{ i + 1 }}</button>

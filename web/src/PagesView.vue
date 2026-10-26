@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { createPage, listPages, putPage, type PageSummary } from './api'
+import { localTime } from './time'
 import { decode } from './zxnet'
 
 const router = useRouter()
@@ -96,14 +97,15 @@ async function create() {
   </form>
   <table>
     <thead>
-      <tr><th>Page</th><th>Description</th><th>Subpages</th><th>Updated</th><th>By</th></tr>
+      <tr><th>Page</th><th>Description</th><th>Subpages</th><th>Transmit</th><th>Updated</th><th>By</th></tr>
     </thead>
     <tbody>
-      <tr v-for="p in shown" :key="p.mpp">
+      <tr v-for="p in shown" :key="p.mpp" :class="{ offair: !p.transmit }">
         <td><RouterLink :to="`/pages/${p.mpp}`">{{ p.mpp }}</RouterLink></td>
         <td>{{ p.description }}</td>
         <td>{{ p.subpages }}</td>
-        <td>{{ p.updatedAt }}</td>
+        <td>{{ p.transmit ? '' : 'off air' }}</td>
+        <td>{{ localTime(p.updatedAt) }}</td>
         <td>{{ p.updatedBy }}</td>
       </tr>
     </tbody>

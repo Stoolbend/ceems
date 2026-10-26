@@ -5,6 +5,7 @@ import {
   runBinding, updateBinding, type BindingSummary, type Run, type Template, type TemplateSummary,
 } from './api'
 import { PALETTE, fromEditable, toEditable } from './editor/cells'
+import { localTime } from './time'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
@@ -258,7 +259,7 @@ async function save() {
         <td>{{ b.templateName }}</td>
         <td><RouterLink :to="`/pages/${b.mpp}`">{{ b.mpp }}</RouterLink></td>
         <td class="last">
-          <template v-if="b.lastRun">{{ new Date(b.lastRun.finishedAt).toLocaleString() }} {{ b.lastRun.outcome }}<span v-if="b.lastRun.outcome === 'failed'">: {{ b.lastRun.error }}</span></template>
+          <template v-if="b.lastRun">{{ localTime(b.lastRun.finishedAt) }} {{ b.lastRun.outcome }}<span v-if="b.lastRun.outcome === 'failed'">: {{ b.lastRun.error }}</span></template>
           <template v-else>never</template>
         </td>
         <td>
@@ -282,7 +283,7 @@ async function save() {
       </thead>
       <tbody>
         <tr v-for="r in runs" :key="r.id">
-          <td>{{ r.startedAt }}</td><td>{{ r.finishedAt }}</td><td>{{ r.actor }}</td><td>{{ r.outcome }}</td><td>{{ r.error }}</td>
+          <td>{{ localTime(r.startedAt) }}</td><td>{{ localTime(r.finishedAt) }}</td><td>{{ r.actor }}</td><td>{{ r.outcome }}</td><td>{{ r.error }}</td>
         </tr>
       </tbody>
     </table>

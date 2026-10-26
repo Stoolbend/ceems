@@ -153,3 +153,17 @@ test('create where the fill fails says the page was created blank and stays', as
   expect(wrapper.find('form.create [role=alert]').text()).toBe('Page 3A0 was created blank; the import failed: no write access')
   expect(router.currentRoute.value.path).toBe('/')
 })
+
+test('a page with transmit off is dimmed and marked off air', async () => {
+  vi.mocked(listPages).mockResolvedValue([{ ...row('100'), transmit: false }, row('101')])
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: PagesView }, { path: '/pages/:mpp', component: { template: '<i/>' } }] })
+  router.push('/')
+  await router.isReady()
+  const wrapper = mount(PagesView, { global: { plugins: [router] } })
+  await flushPromises()
+  const [off, on] = wrapper.findAll('tbody tr')
+  expect(off.classes()).toContain('offair')
+  expect(off.text()).toContain('off air')
+  expect(on.classes()).not.toContain('offair')
+  expect(on.text()).not.toContain('off air')
+})

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { createKey, createKeyGrant, deleteGrant, listKeys, revokeKey, type KeyDoc } from './api'
+import { localTime } from './time'
 
 const keys = ref<KeyDoc[]>([])
 const error = ref('')
@@ -76,9 +77,9 @@ const removeGrant = (id: number) => run(() => deleteGrant(id))
       <tr v-for="k in keys" :key="k.id" :data-key="k.id">
         <td>{{ k.name }}</td>
         <td>{{ k.readOnly ? 'yes' : '' }}</td>
-        <td>{{ k.expiresAt ?? 'never' }}</td>
-        <td>{{ k.lastUsedAt ?? 'never' }}</td>
-        <td>{{ k.revokedAt ?? '' }}</td>
+        <td>{{ localTime(k.expiresAt, 'never') }}</td>
+        <td>{{ localTime(k.lastUsedAt, 'never') }}</td>
+        <td>{{ localTime(k.revokedAt) }}</td>
         <td>
           <ul>
             <li v-for="g in k.grants" :key="g.id">
