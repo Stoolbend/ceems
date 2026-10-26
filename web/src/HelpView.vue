@@ -89,7 +89,7 @@ import { user } from './session'
             <tr><td>Range</td><td><code>A2:B</code></td></tr>
             <tr><td>Columns</td><td><code>p#name, p#score</code></td></tr>
             <tr><td>Rows</td><td><code>3</code></td></tr>
-            <tr><td>Formats</td><td><code>p#score=number</code></td></tr>
+            <tr><td>Formats</td><td>Two lines, press Enter between them:<br /><code>p#score=number unit=sec decimals=3</code><br /><code>p#name=text</code></td></tr>
           </tbody>
         </table>
         <p>
@@ -166,7 +166,7 @@ import { user } from './session'
         <tr><td>Range</td><td>Cells in A1 notation, such as <code>A2:B</code> or <code>C5:E30</code>, with no tab name. Only the sheet's first tab is read.</td></tr>
         <tr><td>Columns</td><td>One slot name per range column, separated by commas, in order. <code>#</code> stands for the entry number, 1, 2, 3 and so on. The range must be at least as wide as the list.</td></tr>
         <tr><td>Rows</td><td>How many entries to use, from 1 to 24.</td></tr>
-        <tr><td>Formats</td><td>One line per column, as <code>column=formatter</code>, for example <code>p#score=number</code>. A column with no line uses <code>text</code>.</td></tr>
+        <tr><td>Formats</td><td>One line per column, as <code>column=formatter</code>. Press Enter between entries: a comma does not separate them, and a line such as <code>p#score=number unit=sec, p#date=date</code> is refused. For example, the two lines <code>p#score=number unit=sec decimals=3</code> and <code>p#date=date</code>. A column with no line uses <code>text</code>.</td></tr>
       </tbody>
     </table>
     <h3>Fixed values</h3>
@@ -194,6 +194,7 @@ import { user } from './session'
         <tr><td><code>text</code></td><td>The cell's text as the sheet shows it. This is the default.</td></tr>
         <tr><td><code>number</code></td><td>Marks a numeric column. Characters other than digits, <code>.</code>, <code>,</code> and <code>-</code> are dropped (<code>$1,234</code> becomes <code>1,234</code>). A number too long for its slot is shortened with <code>k</code>, <code>m</code> or <code>b</code>: <code>1234567890</code> becomes <code>1.23b</code>. The width is the real width of each slot in the template. A cell that is not a number is shown as it is.</td></tr>
         <tr><td><code>number unit=sec</code></td><td>As <code>number</code>, then adds the unit after a space: <code>95</code> becomes <code>95 sec</code>. The number is shortened to leave room for the unit, and if the result is still too long it is cut from the right. The unit is up to you, for example <code>unit=pts</code>. A cell that is not a number gets no unit.</td></tr>
+        <tr><td><code>number decimals=3</code></td><td>Rounds to exactly that many places (0 to 6): <code>2.9</code> becomes <code>2.900</code>. Thousands commas stay if the sheet had them. If the result is too long for the slot, places are dropped one at a time before <code>k</code>, <code>m</code> or <code>b</code> is used. Without <code>decimals</code>, the sheet's text is kept when it fits, and a number under 1000 that does not fit keeps as many places as fit. Options go in any order, separated by spaces: <code>number unit=sec decimals=3</code>. A unit has no space, comma or <code>=</code>.</td></tr>
         <tr><td><code>seconds</code></td><td>Same as <code>number unit=sec</code>.</td></tr>
         <tr><td><code>date</code></td><td>Writes the date as <code>12 Oct 25</code>. Add a pattern to choose another form, for example <code>date DD/MM/YY</code> gives <code>12/10/25</code>. Pattern tokens: <code>D</code> (9), <code>DD</code> (09), <code>M</code> (1), <code>MM</code> (01), <code>Mth</code> (Jan), <code>YY</code> (25), <code>YYYY</code> (2025); anything else is copied. A pattern longer than its slot is cut from the right. It reads a real date cell, or text such as <code>12/10/2025</code>, <code>2025-10-12</code> or <code>12 Oct 2025</code>. In numeric text the day comes first, unless the second number is over 12, which is then read as the day. Text it cannot read fails the run.</td></tr>
       </tbody>
@@ -228,13 +229,16 @@ import { user } from './session'
         <tr><td>no value for slot "..." (subpage ... row ...)</td><td>The template has a slot that neither Columns nor Fixed values covers. The form normally prevents this.</td><td>Edit the binding, check the Fixed values, and save.</td></tr>
         <tr><td>a run is in progress; try again shortly</td><td>The hourly run, or another Run now, is still going.</td><td>Wait a few seconds and press Run now again.</td></tr>
         <tr><td>date: unsupported value "..."</td><td>A cell in a <code>date</code> column is not a date, or is not in a form the formatter reads.</td><td>Correct the cell, or format the column as a date in the sheet.</td></tr>
-        <tr><td>source: format "...": number: expected unit=&lt;text&gt;</td><td>A <code>number</code> Formats line has something other than <code>unit=</code> and a unit.</td><td>Write <code>number</code> or <code>number unit=sec</code>.</td></tr>
+        <tr><td>source: format "...": number: unknown option ...</td><td>A <code>number</code> Formats line has a word that is not <code>unit=</code> or <code>decimals=</code>.</td><td>Write <code>number</code>, <code>number unit=sec</code> or <code>number unit=sec decimals=3</code>.</td></tr>
+        <tr><td>source: format "...": number: unit "..." must be printable text with no space, ',' or '='</td><td>Two columns were put on one line, such as <code>p#score=number unit=sec, p#date=date</code>.</td><td>Put each column on its own line.</td></tr>
+        <tr><td>source: format "...": number: decimals must be a whole number from 0 to 6</td><td>The <code>decimals=</code> value is not 0 to 6.</td><td>Write for example <code>decimals=3</code>.</td></tr>
+        <tr><td>source: format "...": number: option ... is given twice</td><td><code>unit=</code> or <code>decimals=</code> appears twice on the line.</td><td>Give each option once.</td></tr>
         <tr><td>source: format "...": date: pattern has no date token ...</td><td>A <code>date</code> pattern has none of <code>D DD M MM Mth YY YYYY</code>. Tokens are case sensitive.</td><td>Write for example <code>date DD/MM/YY</code>.</td></tr>
       </tbody>
     </table>
     <p>
       The form can also refuse a save. The usual messages are "page 151 already has a binding", "a binding with that name already exists",
-      "slot ... needs a value", "slot ... is not a fixed slot" and "Formats line 1 must be column=formatter".
+      "slot ... needs a value", "slot ... is not a fixed slot" and "Formats line 1 must be column=formatter" and "Formats line 1: put each column on its own line".
     </p>
 
     <template v-if="user?.admin">

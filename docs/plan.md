@@ -487,11 +487,13 @@ notices its dependencies require (D-071).
   test and a disabled pages directory box `light` (T-076).
 - [x] M12-3 Generic test fixtures; no station or old product names in the
   tree `standard` (D-074, T-080).
-- [ ] M12-4 Public history squashed to one commit from the verified tree; the
+- [x] M12-4 Public history squashed to one commit from the verified tree; the
   GitHub repository recreated by the owner `light` (D-075). The history
   rewrite (T-081) was abandoned.
-- [ ] M12-5 Agent process files moved to the private `ceems-dev` repository;
+- [x] M12-5 Agent process files moved to the private `ceems-dev` repository;
   fixture line endings fixed `light` (D-075, T-082).
+- [ ] M12-6 Formatter fixes: decimals option, one-per-line Formats guidance
+  `standard` (D-076, T-083).
 
 ## M5 — Cut-over
 

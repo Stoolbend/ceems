@@ -193,7 +193,9 @@ function parseFormats(): Record<string, string> | Error {
     if (line === '') continue
     const eq = line.indexOf('=')
     if (eq < 1) return new Error(`Formats line ${i + 1} must be column=formatter`)
-    out[line.slice(0, eq).trim()] = line.slice(eq + 1).trim()
+    const spec = line.slice(eq + 1).trim()
+    if (/,\s*[^\s=,]+=/.test(spec)) return new Error(`Formats line ${i + 1}: put each column on its own line`)
+    out[line.slice(0, eq).trim()] = spec
   }
   return out
 }
@@ -304,7 +306,10 @@ async function save() {
       <p><label>Range <input v-model="range" name="range" placeholder="C5:E" required /></label></p>
       <p><label>Columns <input v-model="columns" name="columns" placeholder="p#name, p#score, p#date" required /></label></p>
       <p><label>Rows <input v-model.number="rows" name="rows" type="number" min="1" max="24" required /></label></p>
-      <p><label>Formats <textarea v-model="formats" name="formats" rows="2" cols="30" placeholder="p#scr=number unit=sec"></textarea></label></p>
+      <p>
+        <label>Formats <textarea v-model="formats" name="formats" rows="3" cols="30" placeholder="p#scr=number unit=sec&#10;p#date=date"></textarea></label>
+        <small class="hint">One per line: column=formatter</small>
+      </p>
     </fieldset>
     <fieldset v-if="template">
       <legend>Fixed values</legend>

@@ -314,3 +314,34 @@ test('a Formats line with options round-trips to the source', async () => {
   expect(arg.source.format['p#name']).toBe('number unit=sec')
   wrapper.unmount()
 })
+
+async function saveWithFormats(text: string) {
+  vi.mocked(createBinding).mockClear()
+  vi.mocked(createBinding).mockResolvedValue({} as Binding)
+  const wrapper = await mountView()
+  await openNew(wrapper, 1)
+  await wrapper.find('input[name=mpp]').setValue('4a0')
+  await wrapper.find('input[name=sheet]').setValue('FAKE-SHEET')
+  await wrapper.find('input[name=range]').setValue('C5:E')
+  await wrapper.find('textarea[name=formats]').setValue(text)
+  await wrapper.find('.slot input').setValue('Hi')
+  await wrapper.find('form.binding').trigger('submit')
+  await flushPromises()
+  return wrapper
+}
+
+test('a comma-joined Formats line gives an error and sends nothing', async () => {
+  const wrapper = await saveWithFormats('p#scre=number unit=sec, p#date=date')
+  expect(wrapper.find('.form-error').text()).toBe('Formats line 1: put each column on its own line')
+  expect(createBinding).not.toHaveBeenCalled()
+  expect(wrapper.find('textarea[name=formats]').attributes('placeholder')).toContain('p#date=date')
+  expect(wrapper.text()).toContain('One per line: column=formatter')
+  wrapper.unmount()
+})
+
+test('two Formats lines save as two entries', async () => {
+  const wrapper = await saveWithFormats('p#scre=number unit=sec\np#date=date')
+  expect(createBinding).toHaveBeenCalledOnce()
+  expect(vi.mocked(createBinding).mock.calls[0][0].source.format).toEqual({ 'p#scre': 'number unit=sec', 'p#date': 'date' })
+  wrapper.unmount()
+})

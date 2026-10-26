@@ -1801,3 +1801,19 @@ D-070's rule that a packet is committed on its task branch.
   links.
 - Fixture files under `testdata/` are stored byte-exact (`-text`), so the
   tests see the same line endings on every platform (T-082).
+
+### D-076 — Number formats take a decimals option; Formats stay one entry per line
+
+Date: 2026-10-26. Owner request; extends D-073.
+
+- `number` takes space-separated options in any order: `unit=<text>` and
+  `decimals=<0-6>`. A unit has no space, comma or equals sign.
+- With `decimals=d` the number is rounded to exactly d places, keeping the
+  sheet's thousands commas. When it does not fit its slot, decimals drop one
+  at a time, then k/m/b shrinking applies, then the value is cut from the
+  right.
+- Without `decimals`, a value under 1000 that does not fit keeps as many
+  decimals as fit instead of rounding to a whole number.
+- The Formats box takes one `column=formatter` entry per line. A comma does
+  not separate entries; the form says so and the Help page shows a
+  two-entry example (T-083).

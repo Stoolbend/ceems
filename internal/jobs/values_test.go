@@ -75,18 +75,28 @@ func TestParseSourceConfigFormats(t *testing.T) {
 	src := func(spec string) string {
 		return `{"sheet":"SECRET-ID","range":"A","columns":["a"],"rows":1,"format":{"a":"` + spec + `"}}`
 	}
-	for _, spec := range []string{"text", "number", "number unit=sec", "number unit=pts", "seconds", "date", "date DD/MM/YY"} {
+	for _, spec := range []string{"text", "number", "number unit=sec", "number unit=pts", "number decimals=3", "number decimals=0 unit=sec", "number unit=sec decimals=6", "seconds", "date", "date DD/MM/YY"} {
 		if _, err := ParseSourceConfig(src(spec)); err != nil {
 			t.Errorf("%q refused: %v", spec, err)
 		}
 	}
 	for spec, want := range map[string]string{
-		"number foo":        `source: format "a": number: expected unit=<text>`,
-		"number unit=":      `source: format "a": number: expected unit=<text>`,
+		"number foo":        `source: format "a": number: unknown option "foo" (use unit=<text> or decimals=<0-6>)`,
+		"number unit=":      `source: format "a": number: unit "" must be printable text with no space, ',' or '=' (one Formats entry per line)`,
+		"number unit=sec,":  `source: format "a": number: unit "sec," must be printable text with no space, ',' or '=' (one Formats entry per line)`,
+		"number unit=a=b":   `source: format "a": number: unit "a=b" must be printable text with no space, ',' or '=' (one Formats entry per line)`,
+		"number unit=sec, p#date=date": `source: format "a": number: unit "sec," must be printable text with no space, ',' or '=' (one Formats entry per line)`,
+		"number unit=a unit=b": `source: format "a": number: option unit is given twice`,
+		"number decimals=1 decimals=2": `source: format "a": number: option decimals is given twice`,
+		"number decimals=7": `source: format "a": number: decimals must be a whole number from 0 to 6, got "7"`,
+		"number decimals=x": `source: format "a": number: decimals must be a whole number from 0 to 6, got "x"`,
+		"number decimals=": `source: format "a": number: decimals must be a whole number from 0 to 6, got ""`,
+		"number decimals=01": `source: format "a": number: decimals must be a whole number from 0 to 6, got "01"`,
+		"number bogus=1":    `source: format "a": number: unknown option "bogus=1" (use unit=<text> or decimals=<0-6>)`,
 		"text x":            `source: format "a": text takes no options`,
 		"seconds x":         `source: format "a": seconds takes no options`,
 		"date dd/mm/yy":     `source: format "a": date: pattern has no date token (D, DD, M, MM, Mth, YY, YYYY)`,
-		"number unit=\u00e9": `source: format "a": number: expected unit=<text>`,
+		"number unit=\u00e9": `source: format "a": number: unit "` + "\u00e9" + `" must be printable text with no space, ',' or '=' (one Formats entry per line)`,
 		"nope":              `source: format "a": unknown formatter "nope"`,
 	} {
 		if _, err := ParseSourceConfig(src(spec)); err == nil || err.Error() != want {

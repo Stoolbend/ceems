@@ -25,9 +25,12 @@ var (
 		"Jan 2 2006", "Jan 2, 2006", "2 January 2006", "January 2, 2006"}
 )
 
-// fmtSpec is a parsed Formats value: the name, plus the unit of a number column or
-// the output pattern of a date column.
-type fmtSpec struct{ name, unit, pattern string }
+// fmtSpec is a parsed Formats value: the name, plus the unit and decimals of a number
+// column or the output pattern of a date column. decimals is -1 when not set.
+type fmtSpec struct {
+	name, unit, pattern string
+	decimals            int
+}
 
 const dateDefault = "DD Mth YY"
 
@@ -36,7 +39,7 @@ const dateDefault = "DD Mth YY"
 func parseFormat(spec string) (fmtSpec, error) {
 	name, arg, _ := strings.Cut(strings.TrimSpace(spec), " ")
 	arg = strings.TrimSpace(arg)
-	f := fmtSpec{name: name}
+	f := fmtSpec{name: name, decimals: -1}
 	switch name {
 	case "text", "seconds":
 		if arg != "" {
@@ -46,13 +49,28 @@ func parseFormat(spec string) (fmtSpec, error) {
 			f.name, f.unit = "number", "sec"
 		}
 	case "number":
-		if arg != "" {
-			unit, ok := strings.CutPrefix(arg, "unit=")
-			unit = strings.TrimSpace(unit)
-			if !ok || unit == "" || strings.ContainsFunc(unit, func(r rune) bool { return r < 0x20 || r > 0x7E }) {
-				return f, errors.New("number: expected unit=<text>")
+		seen := map[string]bool{}
+		for _, word := range strings.Fields(arg) {
+			key, val, hasEq := strings.Cut(word, "=")
+			if (key != "unit" && key != "decimals") || !hasEq {
+				return f, fmt.Errorf("number: unknown option %q (use unit=<text> or decimals=<0-6>)", word)
 			}
-			f.unit = unit
+			if seen[key] {
+				return f, fmt.Errorf("number: option %s is given twice", key)
+			}
+			seen[key] = true
+			if key == "decimals" {
+				d, err := strconv.Atoi(val)
+				if err != nil || d < 0 || d > 6 || val != strconv.Itoa(d) {
+					return f, fmt.Errorf("number: decimals must be a whole number from 0 to 6, got %q", val)
+				}
+				f.decimals = d
+				continue
+			}
+			if val == "" || strings.ContainsFunc(val, func(r rune) bool { return r < 0x21 || r > 0x7E || r == ',' || r == '=' }) {
+				return f, fmt.Errorf("number: unit %q must be printable text with no space, ',' or '=' (one Formats entry per line)", val)
+			}
+			f.unit = val
 		}
 	case "date":
 		f.pattern = arg
@@ -79,17 +97,19 @@ func formatValue(spec, formatted string, raw any, width int) (string, error) {
 	}
 	switch f.name {
 	case "number":
-		return formatNumber(formatted, f.unit, width), nil
+		return formatNumber(formatted, f.unit, f.decimals, width), nil
 	case "date":
 		return formatDateValue(formatted, raw, f.pattern)
 	}
 	return formatted, nil
 }
 
-// formatNumber strips a cell to its number, abbreviates it with k/m/b to fit the slot
-// less the unit, appends the unit and cuts the result to the slot from the right. A
-// cell that is not a number comes back as it is, without the unit.
-func formatNumber(formatted, unit string, width int) string {
+// formatNumber strips a cell to its number, fits it to the slot less the unit, appends
+// the unit and cuts the result to the slot from the right. With decimals >= 0 the
+// number is first rounded to that many places; without, the sheet text is kept when it
+// fits. A number that does not fit loses places (fitNumber), then shrinks with k/m/b.
+// A cell that is not a number comes back as it is, without the unit.
+func formatNumber(formatted, unit string, decimals, width int) string {
 	num := strings.Map(func(r rune) rune {
 		if strings.ContainsRune("0123456789.,-", r) {
 			return r
@@ -104,8 +124,12 @@ func formatNumber(formatted, unit string, width int) string {
 	if unit != "" {
 		budget = width - len(unit) - 1
 	}
+	commas := strings.Contains(num, ",")
+	if decimals >= 0 {
+		num = fixedDecimals(f, decimals, commas)
+	}
 	if width > 0 && len(num) > budget {
-		num = abbreviate(f, budget)
+		num = fitNumber(f, decimals, commas, budget)
 	}
 	if unit != "" {
 		num += " " + unit
@@ -157,6 +181,46 @@ scan:
 		i++
 	}
 	return b.String(), n
+}
+
+// fixedDecimals renders f with exactly d places, with thousands commas if asked.
+func fixedDecimals(f float64, d int, commas bool) string {
+	s := strconv.FormatFloat(f, 'f', d, 64)
+	if !commas {
+		return s
+	}
+	s, neg := strings.CutPrefix(s, "-")
+	intPart, frac, hasFrac := strings.Cut(s, ".")
+	for i := len(intPart) - 3; i > 0; i -= 3 {
+		intPart = intPart[:i] + "," + intPart[i:]
+	}
+	if hasFrac {
+		intPart += "." + frac
+	}
+	if neg {
+		intPart = "-" + intPart
+	}
+	return intPart
+}
+
+// fitNumber shortens f to maxLen. With decimals set it drops one place at a time down
+// to none. Without, a value under 1000 keeps as many places as fit, minus trailing
+// zeros. Anything still too long is abbreviated with k, m or b.
+func fitNumber(f float64, decimals int, commas bool, maxLen int) string {
+	trim := decimals < 0 && math.Abs(f) < 1000
+	if trim {
+		decimals = 6
+	}
+	for d := decimals; d >= 0; d-- {
+		s := fixedDecimals(f, d, commas)
+		if trim && d > 0 {
+			s = strings.TrimRight(strings.TrimRight(s, "0"), ".")
+		}
+		if len(s) <= maxLen {
+			return s
+		}
+	}
+	return abbreviate(f, maxLen)
 }
 
 // abbreviate shortens f with a k, m or b suffix and two decimals (".00" dropped); if
