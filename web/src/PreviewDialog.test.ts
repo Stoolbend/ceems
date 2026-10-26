@@ -24,7 +24,7 @@ test('it loads the page, shows its description and plays it', async () => {
   await flushPromises()
   expect(getPreview).toHaveBeenCalledWith('100')
   expect(w.find('dialog').attributes('open')).toBeDefined()
-  expect(w.text()).toContain('Index')
+  expect(w.find('h2').text()).toBe('Preview 100 Index')
   expect(w.findComponent(TeletextPlayer).exists()).toBe(true)
 })
 

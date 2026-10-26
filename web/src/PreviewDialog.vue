@@ -27,7 +27,7 @@ defineExpose({ open })
 <template>
   <dialog ref="el" class="preview-dialog" aria-labelledby="preview-title" @close="closed">
     <fieldset class="dialog">
-      <legend><h2 id="preview-title">Preview {{ mpp }}<template v-if="preview"> {{ preview.description }}</template></h2><button type="button" class="close" aria-label="Close" @click="el?.close()">[X]</button></legend>
+      <legend><h2 id="preview-title">{{ preview ? `Preview ${mpp} ${preview.description}` : `Preview ${mpp}` }}</h2><button type="button" class="close" aria-label="Close" @click="el?.close()">[X]</button></legend>
       <p v-if="error" role="alert">{{ error }}</p>
       <TeletextPlayer v-if="preview" :preview="preview" />
     </fieldset>
@@ -37,6 +37,7 @@ defineExpose({ open })
 <style scoped>
 .preview-dialog { padding: 0; border: 0; background: none; overflow: visible; width: min(90vw, 960px); }
 .preview-dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
-.preview-dialog fieldset { margin: 0.5em 1ch; }
-.preview-dialog .close { position: absolute; top: 0.5em; right: 2ch; }
+/* fill the dialog (a fieldset shrinks to its content otherwise) and anchor [X] to the frame */
+.preview-dialog fieldset { position: relative; box-sizing: border-box; width: calc(100% - 2ch); min-width: 0; margin: 0.5em 1ch; }
+.preview-dialog .close { position: absolute; top: 0; right: 1ch; }
 </style>
