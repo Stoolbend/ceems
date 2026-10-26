@@ -25,6 +25,7 @@ import { user } from './session'
       <li>A <strong>run</strong> reads the range, fills the slots and writes the finished page. A run happens when the server starts, at the top of every hour, and whenever you press Run now.</li>
       <li>A failed run changes nothing: the page keeps its previous content, and the failure is recorded.</li>
       <li>A page with a binding is <strong>read-only</strong> in the editor. It says which binding generates it. To change it, change the template or the binding.</li>
+      <li>Preview, on the Pages and Bindings lists, plays a saved page as a TV shows it: the clock runs, subpages rotate and flashing text flashes. Timing for subpages set to cycle is an estimate.</li>
       <li>Templates and Bindings are only for admin accounts.</li>
     </ul>
 

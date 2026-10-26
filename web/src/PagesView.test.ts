@@ -2,10 +2,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { expect, test, vi } from 'vitest'
 import PagesView from './PagesView.vue'
-import { ApiError, createPage, listPages, putPage, type Page, type PageSummary } from './api'
+import { ApiError, createPage, getPreview, listPages, putPage, type Page, type PageSummary } from './api'
 import { encode } from './zxnet'
 
-vi.mock('./api', async (importOriginal) => ({ ...(await importOriginal<typeof import('./api')>()), listPages: vi.fn(), createPage: vi.fn(), putPage: vi.fn() }))
+vi.mock('./api', async (importOriginal) => ({ ...(await importOriginal<typeof import('./api')>()), listPages: vi.fn(), createPage: vi.fn(), putPage: vi.fn(), getPreview: vi.fn() }))
 
 const row = (mpp: string): PageSummary => ({ mpp, description: `page ${mpp}`, subpages: 1, transmit: true, updatedAt: '2026-01-01T00:00:00Z', updatedBy: 'cli' })
 
@@ -166,4 +166,13 @@ test('a page with transmit off is dimmed and marked off air', async () => {
   expect(off.text()).toContain('off air')
   expect(on.classes()).not.toContain('offair')
   expect(on.text()).not.toContain('off air')
+})
+
+test('Preview on a row opens the preview dialog for that page', async () => {
+  const { wrapper } = await mountView()
+  const showModal = vi.fn(); HTMLDialogElement.prototype.showModal = showModal
+  vi.mocked(getPreview).mockResolvedValue({ mpp: '2A0', description: '', headerTemplate: '', subpages: [{ rows: Array(25).fill(null), seconds: 8 }] })
+  await wrapper.findAll('tbody tr')[2].find('button.preview').trigger('click')
+  expect(getPreview).toHaveBeenCalledWith('2A0')
+  expect(showModal).toHaveBeenCalled()
 })

@@ -105,6 +105,17 @@ export async function getPage(mpp: string): Promise<Page> {
   return request<Page>('GET', `/api/v1/pages/${mpp}`)
 }
 
+export type Preview = {
+  mpp: string
+  description: string
+  headerTemplate: string // "" when the site has none
+  subpages: { rows: (string | null)[]; seconds: number }[]
+}
+
+export async function getPreview(mpp: string): Promise<Preview> {
+  return request<Preview>('GET', `/api/v1/preview/${mpp}`)
+}
+
 export async function putPage(page: Page): Promise<Page> {
   return request<Page>('PUT', `/api/v1/pages/${page.mpp}`, page, { 'If-Match': `"${page.etag}"` })
 }

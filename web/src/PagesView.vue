@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import PreviewDialog from './PreviewDialog.vue'
 import { createPage, listPages, putPage, type PageSummary } from './api'
 import { localTime } from './time'
 import { decode } from './zxnet'
 
 const router = useRouter()
+const preview = ref<InstanceType<typeof PreviewDialog>>()
 const pages = ref<PageSummary[]>([])
 const error = ref('')
 const magazine = ref<number | null>(null) // null = all
@@ -97,7 +99,7 @@ async function create() {
   </form>
   <table>
     <thead>
-      <tr><th>Page</th><th>Description</th><th>Subpages</th><th>Transmit</th><th>Updated</th><th>By</th></tr>
+      <tr><th>Page</th><th>Description</th><th>Subpages</th><th>Transmit</th><th>Updated</th><th>By</th><th></th></tr>
     </thead>
     <tbody>
       <tr v-for="p in shown" :key="p.mpp" :class="{ offair: !p.transmit }">
@@ -107,9 +109,11 @@ async function create() {
         <td>{{ p.transmit ? '' : 'off air' }}</td>
         <td>{{ localTime(p.updatedAt) }}</td>
         <td>{{ p.updatedBy }}</td>
+        <td><button type="button" class="preview" @click="preview?.open(p.mpp)">Preview</button></td>
       </tr>
     </tbody>
   </table>
+  <PreviewDialog ref="preview" />
   </fieldset>
 </template>
 

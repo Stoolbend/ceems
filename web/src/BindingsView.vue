@@ -5,11 +5,13 @@ import {
   runBinding, updateBinding, type BindingSummary, type Run, type Template, type TemplateSummary,
 } from './api'
 import { PALETTE, fromEditable, toEditable } from './editor/cells'
+import PreviewDialog from './PreviewDialog.vue'
 import { localTime } from './time'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 // The list. It never loads a single binding, so the sheet id stays out of it.
+const preview = ref<InstanceType<typeof PreviewDialog>>()
 const bindings = ref<BindingSummary[]>([])
 const sheetsConfigured = ref(true)
 const error = ref('')
@@ -257,7 +259,7 @@ async function save() {
       <tr v-for="b in bindings" :key="b.id" :aria-selected="selected?.id === b.id">
         <td><button type="button" class="select" @click="select(b)">{{ b.name }}</button></td>
         <td>{{ b.templateName }}</td>
-        <td><RouterLink :to="`/pages/${b.mpp}`">{{ b.mpp }}</RouterLink></td>
+        <td><RouterLink :to="`/pages/${b.mpp}`">{{ b.mpp }}</RouterLink> <button type="button" class="preview" @click="preview?.open(b.mpp)">Preview</button></td>
         <td class="last">
           <template v-if="b.lastRun">{{ localTime(b.lastRun.finishedAt) }} {{ b.lastRun.outcome }}<span v-if="b.lastRun.outcome === 'failed'">: {{ b.lastRun.error }}</span></template>
           <template v-else>never</template>
@@ -273,6 +275,7 @@ async function save() {
     </tbody>
   </table>
   <p><button type="button" class="new" @click="newBinding">New binding</button></p>
+  <PreviewDialog ref="preview" />
 
   <section v-if="selected" class="runs">
     <h2>Runs of {{ selected.name }}</h2>

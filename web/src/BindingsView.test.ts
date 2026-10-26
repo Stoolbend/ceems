@@ -3,7 +3,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { beforeEach, expect, test, vi } from 'vitest'
 import BindingsView from './BindingsView.vue'
 import {
-  ApiError, createBinding, dataKeys, deleteBinding, getBinding, getTemplate, listBindings, listRuns, listTemplates, runBinding,
+  ApiError, createBinding, dataKeys, deleteBinding, getBinding, getPreview, getTemplate, listBindings, listRuns, listTemplates, runBinding,
   updateBinding, type Binding, type BindingSummary, type Template,
 } from './api'
 
@@ -18,6 +18,7 @@ vi.mock('./api', async (importOriginal) => ({
   deleteBinding: vi.fn(),
   runBinding: vi.fn(),
   listRuns: vi.fn(),
+  getPreview: vi.fn(),
 }))
 
 // The T-013 two-slot fixture (TemplatesView.test.ts) and a second template for switching.
@@ -344,4 +345,13 @@ test('two Formats lines save as two entries', async () => {
   expect(createBinding).toHaveBeenCalledOnce()
   expect(vi.mocked(createBinding).mock.calls[0][0].source.format).toEqual({ 'p#scre': 'number unit=sec', 'p#date': 'date' })
   wrapper.unmount()
+})
+
+test('Preview on a row opens the preview dialog for the binding page', async () => {
+  const w = await mountView()
+  const showModal = vi.fn(); HTMLDialogElement.prototype.showModal = showModal
+  vi.mocked(getPreview).mockResolvedValue({ mpp: '4A0', description: '', headerTemplate: '', subpages: [{ rows: Array(25).fill(null), seconds: 8 }] })
+  await w.find('button.preview').trigger('click')
+  expect(getPreview).toHaveBeenCalledWith('4A0')
+  expect(showModal).toHaveBeenCalled()
 })
