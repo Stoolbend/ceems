@@ -157,3 +157,13 @@ export function gridText(grid: Cell[][]): string {
       .join('\n\n') + '\n'
   )
 }
+
+// Mark for each control code 0x00-0x1f: [large, subscript], as in the zxnet editor. MOSAIC_MARK stands for a small mosaic icon.
+export const MOSAIC_MARK = '▦'
+const COLOUR = ['K', 'R', 'G', 'Y', 'B', 'M', 'C', 'W']
+export const CONTROL_MARKS: readonly (readonly [string, string])[] = [
+  ...COLOUR.map((c): [string, string] => ['A', c]),
+  ['F', 'L'], ['S', 't'], ['E', 'X'], ['S', 'X'], ['N', 'S'], ['D', 'H'], ['D', 'W'], ['D', 'S'],
+  ...COLOUR.map((c): [string, string] => [MOSAIC_MARK, c]),
+  ['C', 'O'], ['C', MOSAIC_MARK], ['S', MOSAIC_MARK], ['S', 'W'], ['K', 'B'], ['N', 'B'], ['H', MOSAIC_MARK], ['R', MOSAIC_MARK],
+]
