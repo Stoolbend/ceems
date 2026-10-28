@@ -1843,3 +1843,29 @@ Date: 2026-10-26. Owner request; research Q-027.
   about 15 to 50 per cent with several, which is close enough for a preview.
 - The player component takes the preview document as input and fetches
   nothing itself, so the later viewer can reuse it.
+
+### D-078 — CeeMS writes every live vbit2 key
+
+Date: 2026-10-28. Owner request; research of vbit2 `configure.cpp` at
+4948857 (same as master).
+
+- vbit2 reads 11 keys from `vbit.conf`. CeeMS writes all of them except
+  `full_field`, which vbit2 reads and ignores. The four added are
+  `network_identification_code` and `country_network_identification`
+  (4 hex digits, default `0000`), `datacast_lines` (0 up to
+  `lines_per_field`, default 0) and `magazine_serial` (default false), all
+  vbit2's own defaults. Existing databases get them by a migration.
+- The settings page links to the vbit2 wiki's manual configuration page
+  instead of explaining each key. `datacast_lines` and `magazine_serial`
+  are not on the wiki, so each gets a one-line hint.
+- `lines_per_field` is limited to 1 to 16, because vbit2's raspi-teletext
+  launcher refuses more (owner). The old limit of 32 was a guess.
+- A new install's `magazine_priority` default becomes the wiki's
+  `9,3,3,6,3,3,5,6` (owner). Existing databases keep their value.
+- The initial page is checked as vbit2 checks it: the page's low byte is not
+  `FF`, and a subcode is at most `3F7F` with no bits of `C080` set. vbit2
+  corrupts the magazine priorities when that line is malformed, so CeeMS
+  never writes a value vbit2 would reject.
+- This supersedes the key list and the `lines_per_field` limit in D-062
+  (vbit.conf writer); the override file still loads after `vbit.conf` and
+  still wins.
