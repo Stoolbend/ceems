@@ -1863,9 +1863,9 @@ Date: 2026-10-28. Owner request; research of vbit2 `configure.cpp` at
 - A new install's `magazine_priority` default becomes the wiki's
   `9,3,3,6,3,3,5,6` (owner). Existing databases keep their value.
 - The initial page is checked as vbit2 checks it: the page's low byte is not
-  `FF`, and a subcode is at most `3F7F` with no bits of `C080` set. vbit2
-  corrupts the magazine priorities when that line is malformed, so CeeMS
-  never writes a value vbit2 would reject.
+  `FF`, and a subcode is at most `3F7F` with no bits of `C080` set. CeeMS
+  never writes a value vbit2 would reject (a malformed `magazine_priority`
+  line, for one, makes vbit2 read garbage priorities).
 - This supersedes the key list and the `lines_per_field` limit in D-062
   (vbit.conf writer); the override file still loads after `vbit.conf` and
   still wins.
