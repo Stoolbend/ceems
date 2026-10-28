@@ -658,7 +658,7 @@ func TestVbitConfDefaultsMatchTheSample(t *testing.T) {
 		}
 	}
 	want := []string{
-		"; written by CeeMS; edit vbit.conf.override for other keys",
+		"; written by CeeMS; edit vbit.conf.override for other keys; the override is read after this file and wins",
 		"; vbit2 reads this file when it starts",
 		live["header_template"],
 		"initial_teletext_page=100",
@@ -666,13 +666,32 @@ func TestVbitConfDefaultsMatchTheSample(t *testing.T) {
 		"lines_per_field=16",
 		live["magazine_priority"],
 		live["status_display"],
+		live["network_identification_code"],
+		live["country_network_identification"],
+		live["datacast_lines"],
+		live["magazine_serial"],
 		"",
 	}
 	if g := strings.Split(string(got), "\n"); !slices.Equal(g, want) {
 		t.Fatalf("vbit.conf lines\n got %q\nwant %q", g, want)
 	}
-	if live["header_template"] == "" || live["row_adaptive_mode"] == "" || live["magazine_priority"] == "" || live["status_display"] == "" {
+	if live["header_template"] == "" || live["row_adaptive_mode"] == "" || live["magazine_priority"] == "" || live["status_display"] == "" || live["magazine_serial"] == "" {
 		t.Fatalf("the sample lacks a live line: %v", live)
+	}
+}
+
+func TestVbitConfWritesTheNewKeys(t *testing.T) {
+	db := leanStore(t)
+	w := newWriter(t, db)
+	saveSettings(t, db, func(s *store.Settings) {
+		s.MagazineSerial, s.DatacastLines, s.NetworkIdentificationCode, s.CountryNetworkIdentification = true, 3, "ABCD", "1F2E"
+	})
+	if err := w.Reconcile(); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := os.ReadFile(vbitPath(w))
+	if want := "status_display=CeeMS\nnetwork_identification_code=ABCD\ncountry_network_identification=1F2E\ndatacast_lines=3\nmagazine_serial=true\n"; !bytes.HasSuffix(got, []byte(want)) {
+		t.Fatalf("vbit.conf tail %q", got)
 	}
 }
 
@@ -689,8 +708,8 @@ func TestVbitConfWritesControlCellsAsEscape(t *testing.T) {
 	if want := "header_template=\x1b\x47\x1b\x4a\x1b\x4d" + strings.Repeat("A", 29) + "\n"; !bytes.Contains(got, []byte(want)) {
 		t.Fatalf("header not in 7-bit form: %q", got)
 	}
-	if n := bytes.Count(got, []byte{'\n'}); n != 8 || bytes.ContainsRune(got, '\r') {
-		t.Fatalf("%d line feeds (want 8, one per line) or a carriage return in %q", n, got)
+	if n := bytes.Count(got, []byte{'\n'}); n != 12 || bytes.ContainsRune(got, '\r') {
+		t.Fatalf("%d line feeds (want 12, one per line) or a carriage return in %q", n, got)
 	}
 }
 

@@ -49,7 +49,7 @@ func TestOpenCreatesAndReopensWithoutMigrating(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := pragma(t, s.db, "user_version"); v != "10" {
+	if v := pragma(t, s.db, "user_version"); v != "11" {
 		t.Fatalf("user_version %s", v)
 	}
 	if v := pragma(t, s.db, "journal_mode"); v != "wal" {
@@ -65,7 +65,7 @@ func TestOpenCreatesAndReopensWithoutMigrating(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	if v := pragma(t, s.db, "user_version"); v != "10" {
+	if v := pragma(t, s.db, "user_version"); v != "11" {
 		t.Fatalf("user_version %s", v)
 	}
 	if b := backups(t, dir); len(b) != 0 {

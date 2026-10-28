@@ -28,6 +28,11 @@ type settingsDoc struct {
 	StatusDisplay       string `json:"statusDisplay"`
 	IndexPageEnabled    bool   `json:"indexPageEnabled"`
 	IndexPage           string `json:"indexPage"`
+
+	NetworkIdentificationCode    string `json:"networkIdentificationCode"`
+	CountryNetworkIdentification string `json:"countryNetworkIdentification"`
+	DatacastLines                int    `json:"datacastLines"`
+	MagazineSerial               bool   `json:"magazineSerial"`
 }
 
 // settingsBody is the PUT body; a nil field was absent (or null).
@@ -42,10 +47,16 @@ type settingsBody struct {
 	StatusDisplay       *string         `json:"statusDisplay"`
 	IndexPageEnabled    *bool           `json:"indexPageEnabled"`
 	IndexPage           *string         `json:"indexPage"`
+
+	NetworkIdentificationCode    *string         `json:"networkIdentificationCode"`
+	CountryNetworkIdentification *string         `json:"countryNetworkIdentification"`
+	DatacastLines                json.RawMessage `json:"datacastLines"` // raw, like linesPerField
+	MagazineSerial               *bool           `json:"magazineSerial"`
 }
 
 var (
-	initialPage   = regexp.MustCompile(`^[1-8][0-9A-Fa-f]{2}(:[0-9A-Fa-f]{4})?$`)
+	initialPage   = regexp.MustCompile(`^[1-8][0-9A-Fa-f]{2}(:([0-9A-Fa-f]{4}))?$`)
+	hex4          = regexp.MustCompile(`^[0-9A-Fa-f]{4}$`)
 	indexPageRe   = regexp.MustCompile(`^[1-8][0-9a-fA-F]{2}$`)
 	magazinePrios = regexp.MustCompile(`^[1-9](,[1-9]){7}$`)
 )
@@ -87,6 +98,20 @@ func headerError(h string) string {
 		}
 	}
 	return ""
+}
+
+// initialPageOK applies vbit2's rule: a page 100 to 8FE, and an optional subcode of at
+// most 3F7F with none of the bits 0xC080 set.
+func initialPageOK(p string) bool {
+	m := initialPage.FindStringSubmatch(p)
+	if m == nil || strings.EqualFold(p[1:3], "FF") {
+		return false
+	}
+	if m[2] == "" {
+		return true
+	}
+	sub, _ := strconv.ParseUint(m[2], 16, 16)
+	return sub <= 0x3F7F && sub&0xC080 == 0
 }
 
 // readSettings decodes and validates a PUT body in full. It writes the 400 itself and
@@ -143,6 +168,14 @@ func readSettings(w http.ResponseWriter, r *http.Request) (store.Settings, bool)
 		return bad("indexPageEnabled", "must be a boolean")
 	case b.IndexPage == nil:
 		return bad("indexPage", "is required")
+	case b.NetworkIdentificationCode == nil:
+		return bad("networkIdentificationCode", "is required")
+	case b.CountryNetworkIdentification == nil:
+		return bad("countryNetworkIdentification", "is required")
+	case b.DatacastLines == nil:
+		return bad("datacastLines", "is required")
+	case b.MagazineSerial == nil:
+		return bad("magazineSerial", "must be a boolean")
 	}
 	name := strings.TrimSpace(*b.SystemName)
 	if n := len(name); n < 1 || n > 40 || !printable(name) {
@@ -151,13 +184,22 @@ func readSettings(w http.ResponseWriter, r *http.Request) (store.Settings, bool)
 	if msg := headerError(*b.HeaderTemplate); msg != "" {
 		return bad("headerTemplate", msg)
 	}
-	if !initialPage.MatchString(*b.InitialTeletextPage) {
-		return bad("initialTeletextPage", "must be a page such as 100, optionally followed by :SSSS")
+	if !initialPageOK(*b.InitialTeletextPage) {
+		return bad("initialTeletextPage", "must be a page from 100 to 8FE, optionally followed by :SSSS up to 3F7F")
 	}
-	// shortcut: 1 to 32 is a guess, since vbit2's real bound is not documented; tighten it once known.
 	lines, err := strconv.Atoi(string(b.LinesPerField))
-	if err != nil || lines < 1 || lines > 32 {
-		return bad("linesPerField", "must be an integer from 1 to 32")
+	if err != nil || lines < 1 || lines > 16 {
+		return bad("linesPerField", "must be an integer from 1 to 16")
+	}
+	datacast, err := strconv.Atoi(string(b.DatacastLines))
+	if err != nil || datacast < 0 || datacast > lines {
+		return bad("datacastLines", "must be an integer from 0 to linesPerField")
+	}
+	if !hex4.MatchString(*b.NetworkIdentificationCode) {
+		return bad("networkIdentificationCode", "must be four hex digits")
+	}
+	if !hex4.MatchString(*b.CountryNetworkIdentification) {
+		return bad("countryNetworkIdentification", "must be four hex digits")
 	}
 	if !magazinePrios.MatchString(*b.MagazinePriority) {
 		return bad("magazinePriority", "must be eight values from 1 to 9, comma separated")
@@ -173,6 +215,8 @@ func readSettings(w http.ResponseWriter, r *http.Request) (store.Settings, bool)
 		InitialTeletextPage: strings.ToUpper(*b.InitialTeletextPage), RowAdaptiveMode: *b.RowAdaptiveMode,
 		LinesPerField: lines, MagazinePriority: *b.MagazinePriority, StatusDisplay: *b.StatusDisplay,
 		IndexPageEnabled: *b.IndexPageEnabled, IndexPage: strings.ToLower(*b.IndexPage),
+		NetworkIdentificationCode: strings.ToUpper(*b.NetworkIdentificationCode), CountryNetworkIdentification: strings.ToUpper(*b.CountryNetworkIdentification),
+		DatacastLines: datacast, MagazineSerial: *b.MagazineSerial,
 	}, true
 }
 
@@ -188,6 +232,8 @@ func (a *api) writeSettings(w http.ResponseWriter) {
 		InitialTeletextPage: s.InitialTeletextPage, RowAdaptiveMode: s.RowAdaptiveMode, LinesPerField: s.LinesPerField,
 		MagazinePriority: s.MagazinePriority, StatusDisplay: s.StatusDisplay,
 		IndexPageEnabled: s.IndexPageEnabled, IndexPage: s.IndexPage,
+		NetworkIdentificationCode: s.NetworkIdentificationCode, CountryNetworkIdentification: s.CountryNetworkIdentification,
+		DatacastLines: s.DatacastLines, MagazineSerial: s.MagazineSerial,
 	})
 }
 

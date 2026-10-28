@@ -161,7 +161,7 @@ func (w *Writer) Reconcile() error {
 // form: a cell below 0x20 becomes ESC then the cell plus 0x40, every other cell is its byte.
 func renderVbitConf(s store.Settings) []byte {
 	var b bytes.Buffer
-	b.WriteString("; written by CeeMS; edit vbit.conf.override for other keys\n")
+	b.WriteString("; written by CeeMS; edit vbit.conf.override for other keys; the override is read after this file and wins\n")
 	b.WriteString("; vbit2 reads this file when it starts\n")
 	b.WriteString("header_template=")
 	for i := 0; i < len(s.HeaderTemplate); i++ {
@@ -171,7 +171,8 @@ func renderVbitConf(s store.Settings) []byte {
 			b.WriteByte(c)
 		}
 	}
-	fmt.Fprintf(&b, "\ninitial_teletext_page=%s\nrow_adaptive_mode=%t\nlines_per_field=%d\nmagazine_priority=%s\nstatus_display=%s\n",
-		s.InitialTeletextPage, s.RowAdaptiveMode, s.LinesPerField, s.MagazinePriority, s.StatusDisplay)
+	fmt.Fprintf(&b, "\ninitial_teletext_page=%s\nrow_adaptive_mode=%t\nlines_per_field=%d\nmagazine_priority=%s\nstatus_display=%s\nnetwork_identification_code=%s\ncountry_network_identification=%s\ndatacast_lines=%d\nmagazine_serial=%t\n",
+		s.InitialTeletextPage, s.RowAdaptiveMode, s.LinesPerField, s.MagazinePriority, s.StatusDisplay,
+		s.NetworkIdentificationCode, s.CountryNetworkIdentification, s.DatacastLines, s.MagazineSerial)
 	return b.Bytes()
 }

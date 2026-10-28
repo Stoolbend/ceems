@@ -24,6 +24,7 @@ func goodSettings(mutate map[string]any) string {
 		"initialTeletextPage": "1ab", "rowAdaptiveMode": true, "linesPerField": 8,
 		"magazinePriority": "1,2,3,4,5,6,7,8", "statusDisplay": "STATUS",
 		"indexPageEnabled": true, "indexPage": "1AC",
+		"networkIdentificationCode": "00ab", "countryNetworkIdentification": "0000", "datacastLines": 8, "magazineSerial": true,
 	}
 	for k, v := range mutate {
 		if v == nil {
@@ -96,6 +97,27 @@ func TestSettingsValidation(t *testing.T) {
 		{"rowAdaptiveMode missing", "rowAdaptiveMode", set("rowAdaptiveMode", nil)},
 		{"indexPageEnabled missing", "indexPageEnabled", set("indexPageEnabled", nil)},
 		{"indexPage missing", "indexPage", set("indexPage", nil)},
+		{"networkIdentificationCode missing", "networkIdentificationCode", set("networkIdentificationCode", nil)},
+		{"countryNetworkIdentification missing", "countryNetworkIdentification", set("countryNetworkIdentification", nil)},
+		{"datacastLines missing", "datacastLines", set("datacastLines", nil)},
+		{"magazineSerial missing", "magazineSerial", set("magazineSerial", nil)},
+		{"magazineSerial not boolean", "magazineSerial", set("magazineSerial", "true")},
+		{"network code 3 chars", "networkIdentificationCode", set("networkIdentificationCode", "000")},
+		{"network code 5 chars", "networkIdentificationCode", set("networkIdentificationCode", "00000")},
+		{"network code not hex", "networkIdentificationCode", set("networkIdentificationCode", "00G0")},
+		{"country code 3 chars", "countryNetworkIdentification", set("countryNetworkIdentification", "000")},
+		{"country code 5 chars", "countryNetworkIdentification", set("countryNetworkIdentification", "00000")},
+		{"country code not hex", "countryNetworkIdentification", set("countryNetworkIdentification", "00G0")},
+		{"datacast -1", "datacastLines", set("datacastLines", -1)},
+		{"datacast above lines", "datacastLines", set("datacastLines", 9)},
+		{"datacast fraction", "datacastLines", set("datacastLines", 1.5)},
+		{"datacast string", "datacastLines", set("datacastLines", "1")},
+		{"page 1FF", "initialTeletextPage", set("initialTeletextPage", "1FF")},
+		{"page 8ff", "initialTeletextPage", set("initialTeletextPage", "8ff")},
+		{"subcode above 3F7F", "initialTeletextPage", set("initialTeletextPage", "100:3F80")},
+		{"subcode with bit 0x80", "initialTeletextPage", set("initialTeletextPage", "100:0080")},
+		{"subcode with bit 0x4000", "initialTeletextPage", set("initialTeletextPage", "100:4000")},
+		{"subcode FFFF", "initialTeletextPage", set("initialTeletextPage", "100:FFFF")},
 		{"indexPageEnabled not boolean", "indexPageEnabled", set("indexPageEnabled", "true")},
 		{"indexPage 8ff", "indexPage", set("indexPage", "8ff")},
 		{"indexPage 8FF", "indexPage", set("indexPage", "8FF")},
@@ -118,7 +140,7 @@ func TestSettingsValidation(t *testing.T) {
 		{"page short subcode", "initialTeletextPage", set("initialTeletextPage", "100:12")},
 		{"page long subcode", "initialTeletextPage", set("initialTeletextPage", "100:12345")},
 		{"lines 0", "linesPerField", set("linesPerField", 0)},
-		{"lines 33", "linesPerField", set("linesPerField", 33)},
+		{"lines 17", "linesPerField", set("linesPerField", 17)},
 		{"lines string", "linesPerField", set("linesPerField", "8")},
 		{"lines fraction", "linesPerField", set("linesPerField", 8.5)},
 		{"lines exponent", "linesPerField", strings.Replace(goodSettings(nil), `"linesPerField":8`, `"linesPerField":1e1`, 1)},
@@ -180,6 +202,7 @@ func TestSettingsPutThenGet(t *testing.T) {
 		"initialTeletextPage": "1AB", "rowAdaptiveMode": true, "linesPerField": 8.0,
 		"magazinePriority": "1,2,3,4,5,6,7,8", "statusDisplay": "STATUS",
 		"indexPageEnabled": true, "indexPage": "1ac",
+		"networkIdentificationCode": "00AB", "countryNetworkIdentification": "0000", "datacastLines": 8.0, "magazineSerial": true,
 	}
 	for _, body := range []string{put.Body.String(), e.do("GET", "/api/v1/settings", "", admin).Body.String()} {
 		var got map[string]any
@@ -226,6 +249,21 @@ func TestSettingsPutKeepsTheIndexSettings(t *testing.T) {
 	json.Unmarshal(put.Body.Bytes(), &got)
 	if got["indexPageEnabled"] != false || got["indexPage"] != "2bb" {
 		t.Errorf("full PUT: %v", got)
+	}
+}
+
+// The edges vbit2 accepts: datacastLines equal to linesPerField, the largest subcode, lower-case codes.
+func TestSettingsAcceptsVbit2Edges(t *testing.T) {
+	e := newEnv(t, false)
+	e.addUser("admin", true)
+	admin := e.login("admin")
+	for _, page := range []string{"100:3F7F", "8FE", "100:0000"} {
+		wantStatus(t, e.do("PUT", "/api/v1/settings", goodSettings(map[string]any{"initialTeletextPage": page}), admin), http.StatusOK, "")
+	}
+	rec := e.do("PUT", "/api/v1/settings", goodSettings(map[string]any{"linesPerField": 16, "datacastLines": 16, "countryNetworkIdentification": "abcd"}), admin)
+	wantStatus(t, rec, http.StatusOK, "")
+	if !strings.Contains(rec.Body.String(), `"countryNetworkIdentification":"ABCD"`) || !strings.Contains(rec.Body.String(), `"datacastLines":16`) {
+		t.Errorf("body %s", rec.Body.String())
 	}
 }
 

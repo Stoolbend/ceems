@@ -360,32 +360,38 @@
         "updatedAt": {"type": "string"}, "updatedBy": {"type": "string"}
       }, "additionalProperties": false},
       "User": {"type": "object", "required": ["id", "username", "admin"], "properties": {"id": {"type": "integer"}, "username": {"type": "string"}, "admin": {"type": "boolean"}}, "additionalProperties": false},
-      "SettingsInput": {"type": "object", "required": ["systemName", "vbitConf", "headerTemplate", "initialTeletextPage", "rowAdaptiveMode", "linesPerField", "magazinePriority", "statusDisplay", "indexPageEnabled", "indexPage"], "properties": {
+      "SettingsInput": {"type": "object", "required": ["systemName", "vbitConf", "headerTemplate", "initialTeletextPage", "rowAdaptiveMode", "linesPerField", "magazinePriority", "statusDisplay", "indexPageEnabled", "indexPage", "networkIdentificationCode", "countryNetworkIdentification", "datacastLines", "magazineSerial"], "properties": {
         "systemName": {"type": "string", "description": "1 to 40 printable ASCII characters"},
         "vbitConf": {"type": "boolean", "description": "Write vbit.conf into the pages directory"},
         "headerTemplate": {"type": "string", "description": "32 cells, each 0x00 to 0x7F; % starts %%#, %%a, %%b, %d, %e, %m, %y, %H, %M or %S"},
-        "initialTeletextPage": {"type": "string", "description": "Page 100 to 8FF, optionally :SSSS; stored upper-case"},
+        "initialTeletextPage": {"type": "string", "description": "Page 100 to 8FE (the low byte is not FF), optionally :SSSS up to 3F7F with none of the bits C080 set; stored upper-case"},
         "rowAdaptiveMode": {"type": "boolean"},
-        "linesPerField": {"type": "integer", "description": "1 to 32"},
+        "linesPerField": {"type": "integer", "description": "1 to 16"},
         "magazinePriority": {"type": "string", "description": "Eight values 1 to 9, comma separated, for magazines 8,1,2,3,4,5,6,7"},
         "statusDisplay": {"type": "string", "description": "0 to 20 printable ASCII characters, no spaces and no semicolon"},
         "indexPageEnabled": {"type": "boolean", "description": "Every page's sixth fastext link is indexPage; turning it on or changing the page rewrites the pages"},
-        "indexPage": {"type": "string", "description": "Three hex digits, magazine 1 to 8 but not 8ff; stored lower-case"}
-
+        "indexPage": {"type": "string", "description": "Three hex digits, magazine 1 to 8 but not 8ff; stored lower-case"},
+        "networkIdentificationCode": {"type": "string", "description": "Four hex digits; stored upper-case; vbit2 default 0000"},
+        "countryNetworkIdentification": {"type": "string", "description": "Four hex digits; stored upper-case; vbit2 default 0000"},
+        "datacastLines": {"type": "integer", "description": "0 to linesPerField: lines per field kept for datacast packets"},
+        "magazineSerial": {"type": "boolean", "description": "Send magazines one after another instead of interleaved"}
       }, "additionalProperties": false},
-      "Settings": {"type": "object", "required": ["systemName", "pagesDir", "vbitConf", "headerTemplate", "initialTeletextPage", "rowAdaptiveMode", "linesPerField", "magazinePriority", "statusDisplay", "indexPageEnabled", "indexPage"], "properties": {
+      "Settings": {"type": "object", "required": ["systemName", "pagesDir", "vbitConf", "headerTemplate", "initialTeletextPage", "rowAdaptiveMode", "linesPerField", "magazinePriority", "statusDisplay", "indexPageEnabled", "indexPage", "networkIdentificationCode", "countryNetworkIdentification", "datacastLines", "magazineSerial"], "properties": {
         "pagesDir": {"type": "string", "description": "The config file's pagesDir; read-only"},
         "systemName": {"type": "string", "description": "1 to 40 printable ASCII characters"},
         "vbitConf": {"type": "boolean", "description": "Write vbit.conf into the pages directory"},
         "headerTemplate": {"type": "string", "description": "32 cells, each 0x00 to 0x7F; % starts %%#, %%a, %%b, %d, %e, %m, %y, %H, %M or %S"},
-        "initialTeletextPage": {"type": "string", "description": "Page 100 to 8FF, optionally :SSSS; stored upper-case"},
+        "initialTeletextPage": {"type": "string", "description": "Page 100 to 8FE (the low byte is not FF), optionally :SSSS up to 3F7F with none of the bits C080 set; stored upper-case"},
         "rowAdaptiveMode": {"type": "boolean"},
-        "linesPerField": {"type": "integer", "description": "1 to 32"},
+        "linesPerField": {"type": "integer", "description": "1 to 16"},
         "magazinePriority": {"type": "string", "description": "Eight values 1 to 9, comma separated, for magazines 8,1,2,3,4,5,6,7"},
         "statusDisplay": {"type": "string", "description": "0 to 20 printable ASCII characters, no spaces and no semicolon"},
         "indexPageEnabled": {"type": "boolean", "description": "Every page's sixth fastext link is indexPage; turning it on or changing the page rewrites the pages"},
-        "indexPage": {"type": "string", "description": "Three hex digits, magazine 1 to 8 but not 8ff; stored lower-case"}
-
+        "indexPage": {"type": "string", "description": "Three hex digits, magazine 1 to 8 but not 8ff; stored lower-case"},
+        "networkIdentificationCode": {"type": "string", "description": "Four hex digits; stored upper-case; vbit2 default 0000"},
+        "countryNetworkIdentification": {"type": "string", "description": "Four hex digits; stored upper-case; vbit2 default 0000"},
+        "datacastLines": {"type": "integer", "description": "0 to linesPerField: lines per field kept for datacast packets"},
+        "magazineSerial": {"type": "boolean", "description": "Send magazines one after another instead of interleaved"}
       }, "additionalProperties": false},
       "FastextGroup": {"type": "object", "required": ["id", "name", "paged", "links", "texts", "prevSlot", "nextSlot", "default", "pages"], "properties": {
         "id": {"type": "integer"}, "name": {"type": "string"}, "paged": {"type": "boolean"}, "links": {"type": "array", "items": {"type": "string"}},

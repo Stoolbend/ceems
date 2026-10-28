@@ -720,7 +720,7 @@ func TestGroupTextValidation(t *testing.T) { // criterion 9
 
 func TestTextsMigrationAndRoundTrip(t *testing.T) { // criterion 10
 	s := openTemp(t)
-	if v := pragma(t, s.db, "user_version"); v != "10" {
+	if v := pragma(t, s.db, "user_version"); v != "11" {
 		t.Fatalf("user_version %s", v)
 	}
 	if _, err := s.db.Exec("INSERT INTO fastext_groups (name, paged, links) VALUES ('old', 0, '101,102,103,104')"); err != nil {

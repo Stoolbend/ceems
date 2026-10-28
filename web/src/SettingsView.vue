@@ -29,6 +29,10 @@ const mags = ref<number[]>(Array(8).fill(9))
 const statusDisplay = ref('')
 const indexEnabled = ref(false)
 const indexPage = ref('')
+const nic = ref('')
+const cni = ref('')
+const datacast = ref(0)
+const magSerial = ref(false)
 const headerInput = ref<HTMLInputElement>()
 
 function fill(s: Settings) {
@@ -43,6 +47,10 @@ function fill(s: Settings) {
   statusDisplay.value = s.statusDisplay
   indexEnabled.value = s.indexPageEnabled
   indexPage.value = s.indexPage
+  nic.value = s.networkIdentificationCode
+  cni.value = s.countryNetworkIdentification
+  datacast.value = s.datacastLines
+  magSerial.value = s.magazineSerial
 }
 
 // The preview shows the live clock, as vbit2 would draw it.
@@ -80,6 +88,8 @@ async function save() {
       initialTeletextPage: initialPage.value, rowAdaptiveMode: rowAdaptive.value, linesPerField: Number(lines.value),
       magazinePriority: mags.value.join(','), statusDisplay: statusDisplay.value,
       indexPageEnabled: indexEnabled.value, indexPage: indexPage.value,
+      networkIdentificationCode: nic.value, countryNetworkIdentification: cni.value,
+      datacastLines: Number(datacast.value), magazineSerial: magSerial.value,
     })
     fill(s)
     saved.value = true
@@ -115,6 +125,7 @@ async function save() {
       </p>
       <fieldset v-if="vbitConf">
         <legend>vbit2 settings</legend>
+        <p><a href="https://github.com/peterkvt80/vbit2/wiki/Manual-configuration" target="_blank" rel="noopener">vbit2 settings reference</a></p>
         <div class="palette">
           <button v-for="p in PALETTE" :key="p.code" type="button" :title="p.name" @click="insertCode(p.char)">{{ p.char }} {{ p.name }}</button>
         </div>
@@ -133,12 +144,16 @@ async function save() {
         </ul>
         <p><label>Initial page <input v-model="initialPage" name="initialTeletextPage" pattern="[1-8][0-9A-Fa-f]{2}(:[0-9A-Fa-f]{4})?" required size="8" /></label></p>
         <p><label><input v-model="rowAdaptive" name="rowAdaptiveMode" type="checkbox" /> Row adaptive mode</label></p>
-        <p><label>Lines per field <input v-model.number="lines" name="linesPerField" type="number" min="1" max="32" required /></label></p>
+        <p><label>Lines per field <input v-model.number="lines" name="linesPerField" type="number" min="1" max="16" required /></label></p>
         <p class="mags">
           Magazine priority
           <label v-for="(m, i) in MAGAZINES" :key="m">{{ m }} <input v-model.number="mags[i]" :name="`mag${m}`" type="number" min="1" max="9" required /></label>
         </p>
         <p><label>Status display <input v-model="statusDisplay" name="statusDisplay" maxlength="20" pattern="[!-:<-~]*" required autocomplete="off" /> <small>no spaces or ;</small></label></p>
+        <p><label>Network identification code <input v-model="nic" name="networkIdentificationCode" maxlength="4" pattern="[0-9A-Fa-f]{4}" required size="5" autocomplete="off" /></label></p>
+        <p><label>Country and network identification <input v-model="cni" name="countryNetworkIdentification" maxlength="4" pattern="[0-9A-Fa-f]{4}" required size="5" autocomplete="off" /></label></p>
+        <p><label>Datacast lines <input v-model.number="datacast" name="datacastLines" type="number" min="0" :max="lines" required /></label> <small>Lines per field kept for datacast packets; 0 for none. Not more than lines per field.</small></p>
+        <p><label><input v-model="magSerial" name="magazineSerial" type="checkbox" /> Magazine serial</label> <small>Send magazines one after another (serial) instead of interleaved (parallel).</small></p>
         <p><small>vbit2 reads vbit.conf when it starts. Restart vbit2 after a change.</small></p>
       </fieldset>
       <p><button type="submit" :disabled="headerBad">Save</button></p>

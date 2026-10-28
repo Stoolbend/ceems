@@ -294,6 +294,10 @@ export type Settings = {
   statusDisplay: string
   indexPageEnabled: boolean
   indexPage: string
+  networkIdentificationCode: string
+  countryNetworkIdentification: string
+  datacastLines: number
+  magazineSerial: boolean
 }
 
 export async function getSettings(): Promise<Settings> {

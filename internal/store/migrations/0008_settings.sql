@@ -10,5 +10,5 @@ INSERT INTO settings (key, value) VALUES
     ('initial_teletext_page', '100'),
     ('row_adaptive_mode', 'false'),
     ('lines_per_field', '16'),
-    ('magazine_priority', '9,1,3,3,3,9,9,9'),
+    ('magazine_priority', '9,3,3,6,3,3,5,6'),
     ('status_display', 'CeeMS');

@@ -261,6 +261,7 @@ import { user } from './session'
         <li>The pages directory is set in the config file (<code>pagesDir</code>). It is shown on Settings but cannot be changed there; restart CeeMS after editing the file.</li>
         <li>With <strong>Write vbit.conf</strong> on, CeeMS writes a <code>vbit.conf</code> beside the pages. With it off, CeeMS never writes or deletes that file, so the last one written stays until you remove it.</li>
         <li>The file is an override for vbit2, which reads it only when it starts. Restart vbit2 after a change.</li>
+        <li>For what each vbit2 key means, see the <a href="https://github.com/peterkvt80/vbit2/wiki/Manual-configuration" target="_blank" rel="noopener">vbit2 settings reference</a>.</li>
         <li>The header template is exactly 32 cells. The page editor's preview row uses it too.</li>
       </ul>
     </template>

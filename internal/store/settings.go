@@ -20,6 +20,11 @@ type Settings struct {
 	StatusDisplay       string
 	IndexPageEnabled    bool   // every page's sixth link is IndexPage
 	IndexPage           string // three hex digits
+
+	NetworkIdentificationCode    string // four hex digits
+	CountryNetworkIdentification string // four hex digits
+	DatacastLines                int
+	MagazineSerial               bool
 }
 
 // pairs lists each setting as its stored key and text value, in the vbit.conf order.
@@ -33,6 +38,10 @@ func (s Settings) pairs() [][2]string {
 		{"lines_per_field", strconv.Itoa(s.LinesPerField)},
 		{"magazine_priority", s.MagazinePriority},
 		{"status_display", s.StatusDisplay},
+		{"network_identification_code", s.NetworkIdentificationCode},
+		{"country_network_identification", s.CountryNetworkIdentification},
+		{"datacast_lines", strconv.Itoa(s.DatacastLines)},
+		{"magazine_serial", strconv.FormatBool(s.MagazineSerial)},
 		{"index_page_enabled", strconv.FormatBool(s.IndexPageEnabled)},
 		{"index_page", s.IndexPage},
 	}
@@ -72,6 +81,14 @@ func readSettings(query func(string, ...any) (*sql.Rows, error)) (Settings, erro
 			out.MagazinePriority = v
 		case "status_display":
 			out.StatusDisplay = v
+		case "network_identification_code":
+			out.NetworkIdentificationCode = v
+		case "country_network_identification":
+			out.CountryNetworkIdentification = v
+		case "datacast_lines":
+			out.DatacastLines, _ = strconv.Atoi(v)
+		case "magazine_serial":
+			out.MagazineSerial = v == "true"
 		case "index_page_enabled":
 			out.IndexPageEnabled = v == "true"
 		case "index_page":

@@ -17,6 +17,7 @@ const defaults: Settings = {
   systemName: 'CeeMS', pagesDir: '/srv/pages', vbitConf: true, headerTemplate: DEFAULT_HEADER, initialTeletextPage: '100',
   rowAdaptiveMode: true, linesPerField: 16, magazinePriority: '9,1,3,3,3,9,9,9', statusDisplay: 'CeeMS',
   indexPageEnabled: false, indexPage: '100',
+  networkIdentificationCode: '0000', countryNetworkIdentification: '0000', datacastLines: 0, magazineSerial: false,
 }
 
 beforeEach(() => {
@@ -113,6 +114,33 @@ test('the index link settings are sent on every save, and a save updates the use
   await flushPromises()
   expect(vi.mocked(putSettings).mock.calls[1][0]).toMatchObject({ indexPageEnabled: true, indexPage: '1AC' })
   expect(user.value?.indexPage).toBe('1AC')
+})
+
+test('the new vbit2 keys load from and save to the payload; the wiki link and the 16 line cap are set', async () => {
+  vi.mocked(getSettings).mockResolvedValue({ ...defaults, networkIdentificationCode: 'ABCD', datacastLines: 2, magazineSerial: true })
+  vi.mocked(putSettings).mockImplementation(async (s) => s)
+  const w = await mountView()
+  expect(input(w, 'networkIdentificationCode').element.value).toBe('ABCD')
+  expect(input(w, 'countryNetworkIdentification').element.value).toBe('0000')
+  expect(input(w, 'datacastLines').element.value).toBe('2')
+  expect(input(w, 'magazineSerial').element.checked).toBe(true)
+  expect(input(w, 'networkIdentificationCode').attributes('maxlength')).toBe('4')
+  expect(input(w, 'linesPerField').attributes('max')).toBe('16')
+  expect(input(w, 'datacastLines').attributes('max')).toBe('16')
+  await input(w, 'linesPerField').setValue(8)
+  expect(input(w, 'datacastLines').attributes('max')).toBe('8')
+  const a = w.find('a[href="https://github.com/peterkvt80/vbit2/wiki/Manual-configuration"]')
+  expect(a.text()).toBe('vbit2 settings reference')
+  expect(a.attributes('target')).toBe('_blank')
+  expect(a.attributes('rel')).toBe('noopener')
+  await input(w, 'countryNetworkIdentification').setValue('1f2e')
+  await input(w, 'datacastLines').setValue(3)
+  await input(w, 'magazineSerial').setValue(false)
+  await w.find('form').trigger('submit')
+  await flushPromises()
+  expect(vi.mocked(putSettings).mock.calls[0][0]).toMatchObject({
+    networkIdentificationCode: 'ABCD', countryNetworkIdentification: '1f2e', datacastLines: 3, magazineSerial: false, linesPerField: 8,
+  })
 })
 
 test('the status display input refuses spaces and semicolons by pattern', async () => {
