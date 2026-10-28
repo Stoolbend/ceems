@@ -87,8 +87,7 @@ function cellClass(c: Cell, r: number, i: number) {
 .tt-cell.slot { box-shadow: inset 0 -2px #000, inset 0 -4px #ff0; }
 .code { position: absolute; inset: 0; font-size: 60%; font-weight: normal; color: #fff; text-shadow: 0 0 1px #000, 0 0 1px #000, 1px 1px 0 #000, -1px -1px 0 #000; pointer-events: none; }
 /* large mark upper left, subscript lower right; the mosaic icon is a 2x3 checkerboard */
-.code .big { position: absolute; left: 8%; top: 0; }
-.code .sub { position: absolute; right: 8%; bottom: 0; font-size: 70%; line-height: 1; }
-.code i.mo { display: block; width: 0.5em; height: 0.75em; background: repeating-conic-gradient(#fff 0 25%, transparent 0 50%) 0 0 / 50% 33.4%; box-shadow: 0 0 1px #000; }
-.code i.mo.big { width: 0.7em; height: 1em; }
+.code .big { position: absolute; left: 8%; top: 0; line-height: 1; }
+.code .sub { position: absolute; right: 8%; bottom: 0; line-height: 1; }
+.code i.mo { display: block; width: 0.7em; height: 1em; background: repeating-conic-gradient(#fff 0 25%, transparent 0 50%) 0 0 / 50% 33.4%; box-shadow: 0 0 1px #000; }
 </style>
