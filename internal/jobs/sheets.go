@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"time"
 
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
@@ -34,15 +35,15 @@ func NewSheets(ctx context.Context, keyFile string, opts ...option.ClientOption)
 // Read fetches rng twice, as display text and as raw values. rng carries no
 // sheet name, so the API reads the first sheet.
 func (s *Sheets) Read(ctx context.Context, sheetID, rng string) (Rows, error) {
-	f, err := s.svc.Spreadsheets.Values.Get(sheetID, rng).ValueRenderOption("FORMATTED_VALUE").Context(ctx).Do()
+	f, err := getRetry401(ctx, s.svc.Spreadsheets.Values.Get(sheetID, rng).ValueRenderOption("FORMATTED_VALUE").Context(ctx))
 	if err != nil {
 		return Rows{}, classify(err, sheetID)
 	}
 	if len(f.Values) == 0 {
 		return Rows{}, ErrEmpty
 	}
-	r, err := s.svc.Spreadsheets.Values.Get(sheetID, rng).
-		ValueRenderOption("UNFORMATTED_VALUE").DateTimeRenderOption("SERIAL_NUMBER").Context(ctx).Do()
+	r, err := getRetry401(ctx, s.svc.Spreadsheets.Values.Get(sheetID, rng).
+		ValueRenderOption("UNFORMATTED_VALUE").DateTimeRenderOption("SERIAL_NUMBER").Context(ctx))
 	if err != nil {
 		return Rows{}, classify(err, sheetID)
 	}
@@ -56,6 +57,25 @@ func (s *Sheets) Read(ctx context.Context, sheetID, rng string) (Rows, error) {
 		}
 	}
 	return out, nil
+}
+
+// retryPause is the wait before the one retry after an HTTP 401. Tests shorten it.
+var retryPause = 2 * time.Second
+
+// getRetry401 runs the call and, on HTTP 401 only, retries it once after
+// retryPause. An hourly run can land just as Google expires the cached token.
+func getRetry401(ctx context.Context, call *sheets.SpreadsheetsValuesGetCall) (*sheets.ValueRange, error) {
+	v, err := call.Do()
+	var ge *googleapi.Error
+	if !errors.As(err, &ge) || ge.Code != 401 {
+		return v, err
+	}
+	select {
+	case <-time.After(retryPause):
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+	return call.Do()
 }
 
 // classify maps a library error to a fixed-shape error. Library text is passed

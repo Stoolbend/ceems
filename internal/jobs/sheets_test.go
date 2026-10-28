@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,7 +12,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestNewSheetsMalformedKeyDoesNotEchoContents(t *testing.T) {
@@ -154,4 +157,87 @@ func TestClassifyHidesLibraryText(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSheetsRead401Retry(t *testing.T) {
+	old := retryPause
+	retryPause = time.Millisecond
+	t.Cleanup(func() { retryPause = old })
+	f := newFake(t)
+	s := f.client(t)
+
+	// serve answers status for the first n requests of the chosen render option
+	// (formatted or raw), then 200. It returns the per-option request counters.
+	serve := func(status, n int32, failFormatted bool) (fmtN, rawN *atomic.Int32) {
+		fmtN, rawN = new(atomic.Int32), new(atomic.Int32)
+		f.valuesFn.Store(valuesHandler(func(w http.ResponseWriter, _ *http.Request, formatted bool) {
+			c := rawN
+			if formatted {
+				c = fmtN
+			}
+			k := c.Add(1)
+			if formatted == failFormatted && k <= n {
+				http.Error(w, "nope", int(status))
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			io.WriteString(w, `{"values":[["x"]]}`)
+		}))
+		return
+	}
+
+	for _, tc := range []struct {
+		name      string
+		formatted bool
+	}{{"formatted 401 then 200", true}, {"raw 401 then 200", false}} {
+		t.Run(tc.name, func(t *testing.T) {
+			fmtN, rawN := serve(401, 1, tc.formatted)
+			if _, err := s.Read(t.Context(), fakeSheetID, "A1:B"); err != nil {
+				t.Fatal(err)
+			}
+			want := [2]int32{1, 2}
+			if tc.formatted {
+				want = [2]int32{2, 1}
+			}
+			if got := [2]int32{fmtN.Load(), rawN.Load()}; got != want {
+				t.Fatalf("requests (formatted, raw) = %v want %v", got, want)
+			}
+		})
+	}
+
+	t.Run("401 twice fails as before", func(t *testing.T) {
+		fmtN, _ := serve(401, 2, true)
+		_, err := s.Read(t.Context(), fakeSheetID, "A1:B")
+		if !errors.Is(err, ErrUnreachable) || !strings.Contains(err.Error(), "HTTP 401") {
+			t.Fatalf("got %v", err)
+		}
+		if fmtN.Load() != 2 {
+			t.Fatalf("attempts = %d want 2", fmtN.Load())
+		}
+	})
+
+	for _, code := range []int32{403, 404, 500} {
+		t.Run(fmt.Sprint(code, " is not retried"), func(t *testing.T) {
+			fmtN, _ := serve(code, 99, true)
+			if _, err := s.Read(t.Context(), fakeSheetID, "A1:B"); err == nil {
+				t.Fatal("want error")
+			}
+			if fmtN.Load() != 1 {
+				t.Fatalf("attempts = %d want 1", fmtN.Load())
+			}
+		})
+	}
+
+	t.Run("cancel during the pause", func(t *testing.T) {
+		retryPause = time.Minute
+		defer func() { retryPause = time.Millisecond }()
+		fmtN, _ := serve(401, 99, true)
+		ctx, cancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
+		defer cancel()
+		start := time.Now()
+		_, err := s.Read(ctx, fakeSheetID, "A1:B")
+		if !errors.Is(err, ErrUnreachable) || time.Since(start) > 5*time.Second || fmtN.Load() != 1 {
+			t.Fatalf("err %v after %v, attempts %d", err, time.Since(start), fmtN.Load())
+		}
+	})
 }
