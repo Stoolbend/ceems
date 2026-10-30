@@ -13,6 +13,7 @@ const emit = defineEmits<{ 'update:rows': [rows: string[]]; error: [message: str
 const BLOCK_TYPE = 'application/x-ceems-block'
 
 const el = ref<HTMLElement | null>(null)
+const anchorText = ref<HTMLElement | null>(null)
 // The parent remounts the editor (a :key) when the subpage changes, which resets the cursor.
 const row = ref(1)
 const col = ref(0)
@@ -56,9 +57,21 @@ function step(from: Snapshot[], to: Snapshot[]) {
   emit('update:rows', prev.rows)
 }
 
+// The page is not text and mousedown stops text selection, so the browser has nothing to copy and may not fire copy, cut or paste.
+// A selection on one hidden character gives it something; the handlers prevent the default, so that character never reaches the clipboard.
+function holdSelection() {
+  const s = getSelection()
+  if (props.disabled || !s || !anchorText.value) return
+  const r = document.createRange()
+  r.selectNodeContents(anchorText.value)
+  s.removeAllRanges()
+  s.addRange(r)
+}
+
 function keydown(e: KeyboardEvent) {
   if (props.disabled) return
   const k = e.key.toLowerCase()
+  if (((e.ctrlKey || e.metaKey) && ['c', 'x', 'v', 'insert'].includes(k)) || (e.shiftKey && ['insert', 'delete'].includes(k))) holdSelection()
   if (e.ctrlKey && !e.altKey && !e.metaKey && (k === 'z' || k === 'y')) {
     e.preventDefault()
     if (k === 'z' && !e.shiftKey) step(undo, redo)
@@ -93,8 +106,10 @@ function pasted(e: ClipboardEvent) {
 
 // Copy and cut put the selected block on the clipboard: Control Pictures text, once as plain text and once marked as a block.
 function copied(e: ClipboardEvent, cutting = false) {
+  if (props.disabled) return
   const lines = block(state())
-  if (props.disabled || !lines || !e.clipboardData) return
+  // nothing selected: write nothing, and do not let the browser copy the hidden character
+  if (!lines || !e.clipboardData) return e.preventDefault()
   const text = lines.map(toEditable).join('\n')
   e.clipboardData.setData('text/plain', text)
   e.clipboardData.setData(BLOCK_TYPE, text)
@@ -144,6 +159,7 @@ function mousedown(e: MouseEvent) {
   if (props.disabled || e.button !== 0) return
   e.preventDefault() // no text selection; this also suppresses the native focus
   el.value?.focus()
+  holdSelection() // focus() does nothing, so no focus event, when the editor is already focused
   pending.value = false
   if (props.draw) {
     drag = { pushed: false }
@@ -198,10 +214,11 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="el" class="page-editor" :tabindex="disabled ? undefined : 0" role="application" aria-label="Page editor" @keydown="keydown" @paste="pasted" @copy="copied($event)" @cut="copied($event, true)" @click="click" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup">
+  <div ref="el" class="page-editor" :tabindex="disabled ? undefined : 0" role="application" aria-label="Page editor" @focus="holdSelection" @keydown="keydown" @paste="pasted" @copy="copied($event)" @cut="copied($event, true)" @click="click" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup">
     <TeletextPage :rows="rows" :show-codes="showCodes" :show-slots="showSlots" :grid="grid" />
     <div v-if="sel" class="selection" :style="{ left: `calc(${sel.left} * 2.5%)`, top: `calc(${sel.top} * 4%)`, width: `calc(${sel.right - sel.left + 1} * 2.5%)`, height: `calc(${sel.bottom - sel.top + 1} * 4%)` }" />
     <div class="cursor" :style="{ left: `calc(${col} * 2.5%)`, top: `calc(${row} * 4%)` }" />
+    <span ref="anchorText" class="clip-anchor" aria-hidden="true">c</span>
   </div>
   <p class="status" aria-live="polite">{{ status }}</p>
 </template>
@@ -212,6 +229,8 @@ defineExpose({
 .page-editor :deep(.tt-page) { max-width: none; }
 .page-editor:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* white under difference inverts whatever is beneath, so the block shows on all 8 colours */
+/* selectable but invisible and out of flow: it only gives the browser a selection to copy */
+.clip-anchor { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
 .cursor { position: absolute; width: 2.5%; height: 4%; background: #fff; mix-blend-mode: difference; pointer-events: none; }
 .selection { position: absolute; background: rgb(255 255 85 / 0.3); outline: 1px solid var(--focus); box-shadow: inset 0 0 0 1px #000; pointer-events: none; }
 /* a one-row status bar in the theme's bar colours; PageView sizes it on wide screens */

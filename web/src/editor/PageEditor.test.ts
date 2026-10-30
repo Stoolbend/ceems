@@ -433,10 +433,10 @@ describe('block selection', () => {
     w.unmount()
   })
 
-  test('copy without a selection is left to the browser', () => {
+  test('copy without a selection is prevented and writes nothing', () => {
     const w = mount0()
     const { ev, set } = clip(w, 'copy')
-    expect(ev.defaultPrevented).toBe(false)
+    expect(ev.defaultPrevented).toBe(true)
     expect(set).not.toHaveBeenCalled()
     w.unmount()
   })
@@ -471,6 +471,21 @@ describe('block selection', () => {
     await w.setProps({ rows: sent[0][0] })
     await press(w, ctrl('z'))
     expect(w.props('rows')).toBe(before)
+    w.unmount()
+  })
+
+  test('focus and a mousedown leave a DOM selection inside the editor', async () => {
+    const w = mount0()
+    const root = w.find<HTMLElement>('[role=application]').element
+    const held = () => {
+      const s = getSelection()!
+      return !s.isCollapsed && root.contains(s.getRangeAt(0).commonAncestorContainer)
+    }
+    root.dispatchEvent(new FocusEvent('focus')) // jsdom collapses the selection after a real focus(), browsers do not
+    expect(held()).toBe(true)
+    getSelection()!.removeAllRanges()
+    cellAt(w, 1, 1).element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }))
+    expect(held()).toBe(true)
     w.unmount()
   })
 
