@@ -476,6 +476,9 @@ func TestOpenAPIResponses(t *testing.T) {
 	c.call("fastext pages unknown", "PUT /fastext-groups/{id}/pages", "admin", fid+"/pages", `{"pages":["7FF"]}`, 404)
 	c.call("fastext pages in other group", "PUT /fastext-groups/{id}/pages", "admin", "/fastext-groups/"+strconv.Itoa(other.num("id"))+"/pages", `{"pages":["100"]}`, 409)
 	c.call("fastext pages missing group", "PUT /fastext-groups/{id}/pages", "admin", "/fastext-groups/99/pages", `{"pages":[]}`, 404)
+	c.call("page fastext group", "PUT /pages/{mpp}/fastext-group", "admin", "/pages/100/fastext-group", `{"group":null}`, 200)
+	c.call("page fastext group bad", "PUT /pages/{mpp}/fastext-group", "admin", "/pages/100/fastext-group", `{}`, 400)
+	c.call("page fastext group unknown", "PUT /pages/{mpp}/fastext-group", "admin", "/pages/7FF/fastext-group", `{"group":null}`, 404)
 	c.call("fastext delete", "DELETE /fastext-groups/{id}", "admin", fid, "", 204)
 	c.call("fastext delete missing", "DELETE /fastext-groups/{id}", "admin", fid, "", 404)
 

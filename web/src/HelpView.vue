@@ -245,7 +245,7 @@ import { user } from './session'
     <template v-if="user?.admin">
       <h2 id="fastext">Fastext groups</h2>
       <ul>
-        <li>A fastext group sets the four coloured links (Red, Green, Yellow, Cyan) of its pages. Make groups on the Fastext screen. A page is in at most one group, and a page in a group shows its links as read-only in the editor, with a notice under them that links to the group. Link 5 is always yours to set.</li>
+        <li>A fastext group sets the four coloured links (Red, Green, Yellow, Cyan) of its pages. Make groups on the Fastext screen. A page is in at most one group, and a page in a group shows its links as read-only in the editor, with a notice under them that links to the group. Link 5 is always yours to set. An admin can also leave a group, join one or change group from the Fastext group box under the links in the page editor; leaving empties row 24 on every subpage.</li>
         <li>A <strong>static</strong> group gives every page the same four links.</li>
         <li>A <strong>paged</strong> group also links each page to its neighbours. Choose which key is Prev and which is Next (never the same key). Those keys point at the previous and next page in the member order; the other two keys are the same for every page.</li>
         <li>The member order is the order on the Fastext screen, set with Up and Down. The first page has no Previous link and the last has no Next link; a missing link is <code>8ff</code>.</li>

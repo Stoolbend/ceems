@@ -307,6 +307,69 @@ func (s *Store) SetFastextGroupPages(id int64, mpps []int, a Audit) error {
 	return s.commitSweep(tx, id, a, detached)
 }
 
+// SetPageFastextGroup moves page mpp to the end of group gid, or out of its group when
+// gid is 0. Leaving a group empties row 24 on every subpage; both the old and the new
+// group are rewritten. ErrNotFound for an unknown page or group; the same group is a no-op.
+func (s *Store) SetPageFastextGroup(mpp int, gid int64, a Audit) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var old sql.NullInt64
+	err = tx.QueryRow("SELECT fastext_group_id FROM pages WHERE mpp = ?", mpp).Scan(&old)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if gid != 0 {
+		var n int
+		if err := tx.QueryRow("SELECT count(*) FROM fastext_groups WHERE id = ?", gid).Scan(&n); err != nil {
+			return err
+		}
+		if n == 0 {
+			return ErrNotFound
+		}
+	}
+	if old.Int64 == gid { // NULL scans as 0, which is also "no group"
+		return nil
+	}
+	if gid == 0 {
+		_, err = tx.Exec("UPDATE pages SET fastext_group_id = NULL, fastext_order = NULL WHERE mpp = ?", mpp)
+	} else {
+		_, err = tx.Exec(`UPDATE pages SET fastext_group_id = ?,
+			fastext_order = (SELECT COALESCE(MAX(fastext_order), 0) + 1 FROM pages WHERE fastext_group_id = ?) WHERE mpp = ?`, gid, gid, mpp)
+	}
+	if err != nil {
+		return err
+	}
+	target := gid
+	if target == 0 {
+		target = old.Int64
+	}
+	if err := fastextAudit(tx, a, "fastext.pages", target, fmt.Sprintf("page %03X: group %d to %d", mpp, old.Int64, gid)); err != nil {
+		return err
+	}
+	if gid == 0 {
+		return s.commitSweep(tx, old.Int64, a, []int{mpp})
+	}
+	oldChanged := false
+	if old.Valid {
+		if oldChanged, err = sweepGroup(tx, old.Int64, utcNow(), a); err != nil {
+			return err
+		}
+	}
+	if err := s.commitSweep(tx, gid, a, nil); err != nil {
+		return err
+	}
+	if oldChanged {
+		s.notify()
+	}
+	return nil
+}
+
 // commitSweep empties row 24 of the pages that left group id, rewrites its members,
 // commits, and notifies when any page changed.
 func (s *Store) commitSweep(tx *sql.Tx, id int64, a Audit, leaving []int) error {

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import PageView from './PageView.vue'
 import PageEditor from './editor/PageEditor.vue'
 import { PALETTE } from './editor/cells'
-import { ApiError, deletePage, getPage, putPage, uploadTTI, type Page } from './api'
+import { ApiError, deletePage, getFastextGroups, getPage, putPage, setPageFastextGroup, uploadTTI, type FastextGroup, type Page } from './api'
 import { EDITOR, decode, encode } from './zxnet'
 import { user } from './session'
 
@@ -14,6 +14,8 @@ vi.mock('./api', async (importOriginal) => ({
   putPage: vi.fn(),
   uploadTTI: vi.fn(),
   deletePage: vi.fn(),
+  getFastextGroups: vi.fn(),
+  setPageFastextGroup: vi.fn(),
 }))
 
 const spaces = ' '.repeat(40)
@@ -31,6 +33,8 @@ beforeEach(() => {
   vi.mocked(putPage).mockReset()
   vi.mocked(uploadTTI).mockReset()
   vi.mocked(deletePage).mockReset()
+  vi.mocked(getFastextGroups).mockResolvedValue([{ id: 7, name: 'News' }, { id: 8, name: 'Sport' }] as FastextGroup[])
+  vi.mocked(setPageFastextGroup).mockReset()
   vi.restoreAllMocks() // the window.confirm spies
 })
 
@@ -510,6 +514,48 @@ describe('links the server rules own (D-065)', () => {
     const w = await mountView()
     expect(w.find('.fastext').text()).toBe('► This page is part of fastext group News.')
     expect(w.find('.fastext a').exists()).toBe(false)
+  })
+
+  describe('the group select', () => {
+    const select = (w: Wrapper) => w.find<HTMLSelectElement>('.fastext-group select')
+
+    test('an admin sees the current group selected, and changing it calls the endpoint and shows the reply', async () => {
+      vi.mocked(getPage).mockResolvedValue(grouped)
+      vi.mocked(setPageFastextGroup).mockResolvedValue({ ...page('g'), fastextGroup: { id: 8, name: 'Sport', paged: false } })
+      const w = await mountView()
+      expect(select(w).element.value).toBe('7')
+      expect(select(w).findAll('option').map((o) => o.text())).toEqual(['No group', 'News', 'Sport'])
+      await select(w).setValue('8')
+      await flushPromises()
+      expect(setPageFastextGroup).toHaveBeenCalledWith('100', 8)
+      expect(w.find('.fastext').text()).toBe('► This page is part of fastext group Sport.')
+    })
+
+    test('No group leaves the group; an error shows and the select goes back', async () => {
+      vi.mocked(getPage).mockResolvedValue(grouped)
+      vi.mocked(setPageFastextGroup).mockRejectedValueOnce(new Error('boom'))
+      const w = await mountView()
+      await select(w).setValue('')
+      await flushPromises()
+      expect(setPageFastextGroup).toHaveBeenCalledWith('100', null)
+      expect(w.find('[role=alert]').text()).toContain('boom')
+      expect(select(w).element.value).toBe('7')
+    })
+
+    test('a non-admin has no select', async () => {
+      user.value = { id: 2, username: 'guest', admin: false }
+      vi.mocked(getPage).mockResolvedValue(grouped)
+      const w = await mountView()
+      expect(w.find('.fastext-group').exists()).toBe(false)
+    })
+
+    test('the select is disabled while the page has unsaved edits', async () => {
+      const w = await mountView()
+      expect(select(w).element.disabled).toBe(false)
+      await w.find<HTMLInputElement>('input.description').setValue('changed')
+      expect(select(w).element.disabled).toBe(true)
+      expect(w.find('.fastext-group small').text()).toContain('Save your changes first')
+    })
   })
 
   test('an ungrouped page has no group line and editable coloured inputs', async () => {

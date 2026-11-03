@@ -761,3 +761,97 @@ func TestSetRowWithEmptyCellsKeepsAnOL24Line(t *testing.T) { // the packet's sto
 		t.Fatalf("no OL,24, line: %q", p.Bytes())
 	}
 }
+
+func TestSetPageFastextGroup(t *testing.T) {
+	texts := FastextGroup{Texts: [4]string{"a", "b", "c", "d"}}
+	pageGroup := func(s *Store, mpp int) int64 {
+		return int64(scalar(t, s, fmt.Sprintf("SELECT COALESCE(fastext_group_id, 0) FROM pages WHERE mpp = %d", mpp)))
+	}
+	t.Run("leave", func(t *testing.T) {
+		s := openTemp(t)
+		addPage(t, s, 0x201, 2)
+		addPage(t, s, 0x202, 1)
+		addPage(t, s, 0x203, 1)
+		id := newGroup(t, s, texts, 0x201, 0x202, 0x203)
+		if row24Of(t, s, 0x201)[0] == "" {
+			t.Fatal("setup: no row 24")
+		}
+		if err := s.SetPageFastextGroup(0x201, 0, admin); err != nil {
+			t.Fatal(err)
+		}
+		wantRow24(t, s, 0x201, "")
+		if pageGroup(s, 0x201) != 0 {
+			t.Error("page still in the group")
+		}
+		if got := scalar(t, s, "SELECT count(*) FROM pages WHERE fastext_group_id = "+fmt.Sprint(id)); got != 2 {
+			t.Errorf("%d members, want 2", got)
+		}
+		if row24Of(t, s, 0x202)[0] == "" {
+			t.Error("remaining member lost its row 24")
+		}
+	})
+	t.Run("join from none goes last", func(t *testing.T) {
+		s := openTemp(t)
+		addPage(t, s, 0x201, 1)
+		addPage(t, s, 0x202, 2)
+		id := newGroup(t, s, texts, 0x201)
+		if err := s.SetPageFastextGroup(0x202, id, admin); err != nil {
+			t.Fatal(err)
+		}
+		if got := scalar(t, s, "SELECT fastext_order FROM pages WHERE mpp = 514"); got != 2 {
+			t.Errorf("order %d, want 2", got)
+		}
+		wantFL(t, s, 0x202, "101,102,103,104,5aa,666")
+		if r := row24Of(t, s, 0x202); r[0] == "" || r[1] == "" {
+			t.Errorf("row 24 not written on every subpage: %q", r)
+		}
+	})
+	t.Run("move between groups", func(t *testing.T) {
+		s := openTemp(t)
+		addPage(t, s, 0x201, 1)
+		addPage(t, s, 0x202, 1)
+		addPage(t, s, 0x203, 1)
+		a := newGroup(t, s, FastextGroup{Name: "a", Texts: [4]string{"a", "b", "c", "d"}, Paged: true, PrevSlot: ip(0), NextSlot: ip(1)}, 0x201, 0x202)
+		b := newGroup(t, s, FastextGroup{Name: "b", Texts: [4]string{"w", "x", "y", "z"}}, 0x203)
+		before := row24Of(t, s, 0x201)[0]
+		if err := s.SetPageFastextGroup(0x202, b, admin); err != nil {
+			t.Fatal(err)
+		}
+		if pageGroup(s, 0x202) != b || pageGroup(s, 0x201) != a {
+			t.Fatal("membership wrong")
+		}
+		if row24Of(t, s, 0x201)[0] == before {
+			t.Error("old group was not swept")
+		}
+		if got := row24Of(t, s, 0x202)[0]; got != row24Of(t, s, 0x203)[0] {
+			t.Errorf("moved page row 24 %q, want the new group's %q", got, row24Of(t, s, 0x203)[0])
+		}
+	})
+	t.Run("same group changes nothing", func(t *testing.T) {
+		s := openTemp(t)
+		addPage(t, s, 0x201, 1)
+		id := newGroup(t, s, texts, 0x201)
+		versions := scalar(t, s, "SELECT count(*) FROM page_versions")
+		audits := scalar(t, s, "SELECT count(*) FROM audit")
+		if err := s.SetPageFastextGroup(0x201, id, admin); err != nil {
+			t.Fatal(err)
+		}
+		if scalar(t, s, "SELECT count(*) FROM page_versions") != versions || scalar(t, s, "SELECT count(*) FROM audit") != audits {
+			t.Error("a no-op wrote a version or audit row")
+		}
+	})
+	t.Run("unknown page or group", func(t *testing.T) {
+		s := openTemp(t)
+		addPage(t, s, 0x201, 1)
+		audits := scalar(t, s, "SELECT count(*) FROM audit")
+		if err := s.SetPageFastextGroup(0x299, 0, admin); !errors.Is(err, ErrNotFound) {
+			t.Errorf("unknown page: %v", err)
+		}
+		if err := s.SetPageFastextGroup(0x201, 99, admin); !errors.Is(err, ErrNotFound) {
+			t.Errorf("unknown group: %v", err)
+		}
+		if pageGroup(s, 0x201) != 0 || scalar(t, s, "SELECT count(*) FROM audit") != audits {
+			t.Error("something changed")
+		}
+	})
+}

@@ -201,3 +201,32 @@ func (a *api) setFastextPages(w http.ResponseWriter, r *http.Request) {
 	}
 	a.writeFastext(w, http.StatusOK, id)
 }
+
+// setPageFastextGroup moves a page into a group, or out of its group when group is null.
+func (a *api) setPageFastextGroup(w http.ResponseWriter, r *http.Request) {
+	mpp, ok := parseMPPHex(r.PathValue("mpp"))
+	if !ok {
+		writeError(w, http.StatusBadRequest, "bad_request", "mpp: three hex digits from 100 to 8FF")
+		return
+	}
+	body, ok := readBody(w, r)
+	if !ok {
+		return
+	}
+	var b struct {
+		Group json.RawMessage `json:"group"` // absent is a 400; null is "no group"
+	}
+	dec := json.NewDecoder(bytes.NewReader(body))
+	dec.DisallowUnknownFields()
+	var gid int64
+	if dec.Decode(&b) != nil || dec.More() || len(b.Group) == 0 ||
+		(string(b.Group) != "null" && (json.Unmarshal(b.Group, &gid) != nil || gid <= 0)) {
+		writeError(w, http.StatusBadRequest, "bad_request", "body must be {group: id or null}")
+		return
+	}
+	if err := a.db.SetPageFastextGroup(mpp, gid, audit(r, "")); err != nil {
+		a.fastextError(w, err)
+		return
+	}
+	a.getPage(w, r, mpp)
+}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, deletePage, getPage, putPage, uploadTTI, type Page, type Subpage } from './api'
+import { ApiError, deletePage, getFastextGroups, getPage, putPage, setPageFastextGroup, uploadTTI, type FastextGroup, type Page, type Subpage } from './api'
 import KeysHelp from './editor/KeysHelp.vue'
 import PageEditor from './editor/PageEditor.vue'
 import { PALETTE } from './editor/cells'
@@ -45,6 +45,7 @@ const draw = ref(false)
 const editor = ref<InstanceType<typeof PageEditor> | null>(null)
 const SECTIONS = [['alpha', 'Alpha'], ['mosaic', 'Mosaic'], ['other', 'Other']] as const
 
+const groups = ref<FastextGroup[]>([]) // for the admin's group select
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 function toEdit(s: Subpage): Edit {
@@ -72,6 +73,7 @@ function show(p: Page) {
 onMounted(async () => {
   try {
     show(await getPage(mpp))
+    if (user.value?.admin) groups.value = await getFastextGroups()
   } catch (e) {
     error.value = message(e)
   }
@@ -121,6 +123,22 @@ function subpageDoc(e: Edit): Subpage {
       if (r === 0 || (e.orig && e.rows[r] === (orig ?? '').padEnd(40, ' '))) return orig
       return e.rows[r]
     }),
+  }
+}
+
+// Edits not yet saved; a group change reloads the page from the server and would drop them.
+const dirty = computed(() => !!page.value && (description.value !== page.value.description || transmit.value !== page.value.transmit ||
+  JSON.stringify(edits.value.map(subpageDoc)) !== JSON.stringify(page.value.subpages)))
+
+async function changeGroup(e: Event) {
+  const v = (e.target as HTMLSelectElement).value
+  error.value = ''
+  stale.value = false
+  try {
+    show(await setPageFastextGroup(mpp, v === '' ? null : Number(v)))
+  } catch (err) {
+    error.value = message(err)
+    ;(e.target as HTMLSelectElement).value = String(page.value?.fastextGroup?.id ?? '')
   }
 }
 
@@ -194,6 +212,13 @@ async function upload() {
         <label v-for="(name, k) in LINK_NAMES" :key="k">{{ name }} <input :value="ruled(k) ? ruled(k)!.value : sub.links[k]" maxlength="3" size="3" class="link" :class="LINK_COLOURS[k]" :disabled="locked || !!ruled(k)" :title="ruled(k)?.title" @input="sub.links[k] = ($event.target as HTMLInputElement).value" /></label>
         <p v-if="page.fastextGroup" role="note" class="fastext"><span aria-hidden="true">►</span> This page is part of fastext group
           <RouterLink v-if="user?.admin" :to="`/fastext?group=${page.fastextGroup.id}`">{{ page.fastextGroup.name }}</RouterLink><template v-else>{{ page.fastextGroup.name }}</template><template v-if="page.fastextGroup.paged"> (paged)</template>.</p>
+        <label v-if="user?.admin" class="fastext-group">Fastext group
+          <select :value="page.fastextGroup?.id ?? ''" :disabled="dirty" @change="changeGroup">
+            <option value="">No group</option>
+            <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
+          </select>
+          <small v-if="dirty">Save your changes first: the links and row 24 change on the server.</small>
+        </label>
       </div>
     </div>
     <div class="side">
@@ -268,6 +293,7 @@ async function upload() {
 .links input.red { background: #f00; } .links input.green { background: #0f0; }
 .links input.yellow { background: #ff0; } .links input.cyan { background: #0ff; }
 .fastext { flex: 0 0 100%; min-width: 0; margin: 0; }
+.fastext-group { flex: 0 0 100%; }
 .cycle { width: 5em; }
 .description { width: 24em; max-width: 100%; }
 /* the global nav spreads its children; the subpage tabs sit left and wrap */

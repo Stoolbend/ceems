@@ -243,3 +243,49 @@ func TestFastextTexts(t *testing.T) { // criteria 14 and 15
 		t.Errorf("%d groups, want 2", n)
 	}
 }
+
+func TestPageFastextGroupRoute(t *testing.T) {
+	e, admin := fxEnv(t)
+	path := fxCreate(t, e, admin, fxBody("g", false, "", false))
+	gid := path[strings.LastIndex(path, "/")+1:]
+	group := func(c *http.Cookie, mpp string) any {
+		return decode(t, e.do("GET", "/api/v1/pages/"+mpp, "", c).Body.String())["fastextGroup"]
+	}
+	e.addUser("guest", false)
+	guest := e.login("guest")
+	_, authz := e.key(false)
+	body := `{"group":` + gid + `}`
+	if rec := e.do("PUT", "/api/v1/pages/201/fastext-group", body, guest); rec.Code != http.StatusForbidden {
+		t.Errorf("non-admin: %d", rec.Code)
+	}
+	if rec := e.bearer("PUT", "/api/v1/pages/201/fastext-group", body, authz); rec.Code != http.StatusForbidden {
+		t.Errorf("key: %d", rec.Code)
+	}
+	if group(admin, "201") != nil {
+		t.Fatal("a refused call changed the page")
+	}
+	rec := e.do("PUT", "/api/v1/pages/201/fastext-group", body, admin)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("join: %d %s", rec.Code, rec.Body.String())
+	}
+	if g, _ := decode(t, rec.Body.String())["fastextGroup"].(map[string]any); g == nil || g["name"] != "g" {
+		t.Errorf("join response fastextGroup %v", g)
+	}
+	rec = e.do("PUT", "/api/v1/pages/201/fastext-group", `{"group":null}`, admin)
+	if rec.Code != http.StatusOK || decode(t, rec.Body.String())["fastextGroup"] != nil {
+		t.Errorf("leave: %d %s", rec.Code, rec.Body.String())
+	}
+	for _, c := range []struct {
+		path, body string
+		want       int
+	}{
+		{"/api/v1/pages/201/fastext-group", `{}x`, 400}, {"/api/v1/pages/201/fastext-group", `{"group":0}`, 400},
+		{"/api/v1/pages/201/fastext-group", `{"group":"1"}`, 400}, {"/api/v1/pages/20/fastext-group", `{"group":null}`, 400},
+		{"/api/v1/pages/2ZZ/fastext-group", `{"group":null}`, 400},
+		{"/api/v1/pages/299/fastext-group", `{"group":null}`, 404}, {"/api/v1/pages/201/fastext-group", `{"group":999}`, 404},
+	} {
+		if rec := e.do("PUT", c.path, c.body, admin); rec.Code != c.want {
+			t.Errorf("PUT %s %s: %d, want %d", c.path, c.body, rec.Code, c.want)
+		}
+	}
+}

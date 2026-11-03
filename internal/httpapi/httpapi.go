@@ -112,6 +112,7 @@ func newAPI(ui fs.FS, log *slog.Logger, db *store.Store, secureCookies bool, run
 	a.adminRoute(apiMux, "PUT /api/v1/fastext-groups/{id}", a.updateFastext)
 	a.adminRoute(apiMux, "DELETE /api/v1/fastext-groups/{id}", a.deleteFastext)
 	a.adminRoute(apiMux, "PUT /api/v1/fastext-groups/{id}/pages", a.setFastextPages)
+	a.adminRoute(apiMux, "PUT /api/v1/pages/{mpp}/fastext-group", a.setPageFastextGroup)
 	a.adminRoute(apiMux, "GET /api/v1/settings", a.getSettings)
 	a.adminRoute(apiMux, "PUT /api/v1/settings", a.updateSettings)
 	apiMux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {

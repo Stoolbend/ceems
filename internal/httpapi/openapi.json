@@ -272,6 +272,14 @@
         "responses": {"200": {"description": "The group", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FastextGroup"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "409": {"$ref": "#/components/responses/E409"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
       }
     },
+    "/pages/{mpp}/fastext-group": {
+      "parameters": [{"$ref": "#/components/parameters/mpp"}],
+      "put": {
+        "tags": ["admin"], "summary": "Move a page into a fastext group, or out of its group", "description": "The page goes last in the group. Leaving a group empties row 24 on every subpage; the old and new groups are rewritten. The same group changes nothing.", "security": [{"cookieAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["group"], "properties": {"group": {"type": ["integer", "null"], "description": "Group id, or null for no group"}}, "additionalProperties": false}}}},
+        "responses": {"200": {"description": "The page", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Page"}}}}, "400": {"$ref": "#/components/responses/E400"}, "401": {"$ref": "#/components/responses/E401"}, "403": {"$ref": "#/components/responses/E403"}, "404": {"$ref": "#/components/responses/E404"}, "413": {"$ref": "#/components/responses/E413"}, "429": {"$ref": "#/components/responses/E429"}}
+      }
+    },
     "/settings": {
       "get": {
         "tags": ["admin"], "summary": "Get the system settings", "security": [{"cookieAuth": []}],

@@ -323,6 +323,11 @@ export async function getFastextGroups(): Promise<FastextGroup[]> {
   return (await request<{ groups: FastextGroup[] }>('GET', '/api/v1/fastext-groups')).groups
 }
 
+// Admin only. Moves the page to the end of group, or out of its group when null; returns the page.
+export async function setPageFastextGroup(mpp: string, group: number | null): Promise<Page> {
+  return request<Page>('PUT', `/api/v1/pages/${mpp}/fastext-group`, { group })
+}
+
 export async function createFastextGroup(b: FastextGroupBody): Promise<FastextGroup> {
   return request<FastextGroup>('POST', '/api/v1/fastext-groups', b)
 }
