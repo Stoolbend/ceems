@@ -1869,3 +1869,16 @@ Date: 2026-10-28. Owner request; research of vbit2 `configure.cpp` at
 - This supersedes the key list and the `lines_per_field` limit in D-062
   (vbit.conf writer); the override file still loads after `vbit.conf` and
   still wins.
+
+### D-079 — Fastext group membership from the page editor
+
+Date: 2026-11-03. Owner request and answers.
+
+- An admin can put a page in a fastext group, move it to another, or take it
+  out of its group from the page editor, through
+  `PUT /api/v1/pages/{mpp}/fastext-group`. Other users and API keys cannot;
+  they keep the read-only notice.
+- A page that joins or moves goes last in the group's order. Leaving clears
+  row 24 on every subpage, as removing a page on the Fastext page does.
+- The control is disabled while the page has unsaved edits, because the
+  change rewrites row 24 and the links on the server.
