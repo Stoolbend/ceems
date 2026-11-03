@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 import TeletextPage from './TeletextPage.vue'
@@ -46,8 +48,8 @@ test('showCodes marks control cells with a descriptive mark, and only when asked
   const rows = ['', '\x01AB\x11\x7f']
   const on = mount(TeletextPage, { props: { rows, showCodes: true } }).findAll('.tt-row')[1].findAll('.tt-cell')
   expect(on.map((c, i) => [i, c.classes().includes('ctl')]).filter(([, m]) => m).map(([i]) => i)).toEqual([0, 3])
-  const mark = (c: (typeof on)[number]) => [c.find('.big').exists() && !c.find('i.big').exists() ? c.find('span.big').text() : 'mosaic', c.find('span.sub').text()]
-  expect([mark(on[0]), mark(on[3])]).toEqual([['A', 'R'], ['mosaic', 'R']])
+  expect(on[0].find('span.big').text()).toBe('A')
+  expect(on[0].find('.sub').exists()).toBe(false)
   expect(on[3].find('i.mo.big').exists()).toBe(true)
   const off = mount(TeletextPage, { props: { rows } })
   expect(off.findAll('.ctl')).toHaveLength(0)
@@ -136,11 +138,11 @@ describe('showSlots', () => {
 
 test('CONTROL_MARKS holds the design table for all 32 codes', () => {
   const M = MOSAIC_MARK
-  const k = 'KRGYBMCW'
+  const k = 'KRGYBMCW' // eight colours
   const expected = [
-    ...[...k].map((c) => ['A', c]),
+    ...[...k].map(() => ['A', '']),
     ['F', 'L'], ['S', 't'], ['E', 'X'], ['S', 'X'], ['N', 'S'], ['D', 'H'], ['D', 'W'], ['D', 'S'],
-    ...[...k].map((c) => [M, c]),
+    ...[...k].map(() => [M, '']),
     ['C', 'O'], ['C', M], ['S', M], ['S', 'W'], ['K', 'B'], ['N', 'B'], ['H', M], ['R', M],
   ]
   expect(CONTROL_MARKS).toHaveLength(32)
@@ -150,4 +152,28 @@ test('CONTROL_MARKS holds the design table for all 32 codes', () => {
 test('showCodes draws 0x1d as N with subscript B', () => {
   const c = mount(TeletextPage, { props: { rows: [''], showCodes: true } }).find('.tt-cell')
   expect([c.find('span.big').text(), c.find('span.sub').text()]).toEqual(['N', 'B'])
+  expect(c.find('.code').classes().some((x) => x.startsWith('mk-'))).toBe(false)
+})
+
+const codeCell = (code: number) => mount(TeletextPage, { props: { rows: [String.fromCharCode(code)], showCodes: true } }).find('.tt-cell .code')
+
+test('colour codes draw one mark in the code colour', () => {
+  const a = codeCell(0x01)
+  expect(a.classes()).toContain('mk-1')
+  expect(a.findAll('.big')).toHaveLength(1)
+  expect(a.find('span.big').text()).toBe('A')
+  expect(a.find('.sub').exists()).toBe(false)
+  const m = codeCell(0x13)
+  expect(m.classes()).toContain('mk-3')
+  expect(m.findAll('i.mo.big')).toHaveLength(1)
+  expect(m.find('.sub').exists()).toBe(false)
+  expect(m.find('span').exists()).toBe(false)
+  expect(codeCell(0x00).classes()).toContain('mk-0')
+  expect(codeCell(0x1d).classes().some((c) => c.startsWith('mk-'))).toBe(false)
+})
+
+test('the mark colours and the black-mark white shadow are in the stylesheet', () => {
+  const css = readFileSync(join(__dirname, 'TeletextPage.vue'), 'utf8')
+  expect(css).toMatch(/\.mk-0 \{ color: #000; text-shadow: [^}]*#fff/)
+  for (const [n, hex] of ['#f00', '#0f0', '#ff0', '#00f', '#f0f', '#0ff', '#fff'].entries()) expect(css).toContain(`.mk-${n + 1} { color: ${hex}; }`)
 })

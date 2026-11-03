@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CONTROL_MARKS, glyph, MOSAIC_MARK, renderPage, SEXTANT_BITS } from './render'
+import { CONTROL_MARKS, codeColour, glyph, MOSAIC_MARK, renderPage, SEXTANT_BITS } from './render'
 import { slots } from './slots'
 
 const props = withDefaults(defineProps<{ rows: string[]; aspect?: '4:3' | '16:9'; rowCount?: number; colCount?: number; showCodes?: boolean; grid?: boolean; showSlots?: boolean }>(), { aspect: '4:3', rowCount: 25, colCount: 40, showCodes: false, grid: false, showSlots: false })
@@ -19,7 +19,7 @@ const belowDouble = computed(() => {
 // A control cell is one whose source code is below 0x20 and which the page draws from that source.
 const ctlCode = (c: Cell, r: number, i: number) => {
   const v = props.showCodes && c.height !== 'bottom' && !belowDouble.value[r] ? props.rows[r]?.charCodeAt(i) : undefined
-  return v !== undefined && v < 0x20 ? CONTROL_MARKS[v] : undefined
+  return v !== undefined && v < 0x20 ? { marks: CONTROL_MARKS[v], colour: codeColour(v) } : undefined
 }
 
 // Slot cells by source row; the bottom half of a double-height row reads the row above, as renderPage draws it.
@@ -45,8 +45,8 @@ function cellClass(c: Cell, r: number, i: number) {
       <span v-for="(c, i) in row" :key="i" class="tt-cell" :class="cellClass(c, r, i)">
         <template v-if="c.mosaic"><i v-for="b in SEXTANT_BITS" :key="b" :class="{ on: (c.ch & (1 << b)) !== 0 }" /></template>
         <span v-else class="g">{{ inSlot(r, i) ? String.fromCharCode(c.ch) : glyph(c.ch) }}</span>
-        <b v-if="ctlCode(c, r, i)" class="code">
-          <template v-for="(m, k) in ctlCode(c, r, i)" :key="k"><i v-if="m === MOSAIC_MARK" :class="k ? 'sub' : 'big'" class="mo" /><span v-else :class="k ? 'sub' : 'big'">{{ m }}</span></template>
+        <b v-if="ctlCode(c, r, i)" class="code" :class="ctlCode(c, r, i)!.colour !== undefined && `mk-${ctlCode(c, r, i)!.colour}`">
+          <template v-for="(m, k) in ctlCode(c, r, i)!.marks" :key="k"><template v-if="m"><i v-if="m === MOSAIC_MARK" :class="k ? 'sub' : 'big'" class="mo" /><span v-else :class="k ? 'sub' : 'big'">{{ m }}</span></template></template>
         </b>
       </span>
     </div>
@@ -86,8 +86,11 @@ function cellClass(c: Cell, r: number, i: number) {
 /* slot highlight: a two-colour bar along the token's bottom edge, one line of which passes on every background */
 .tt-cell.slot { box-shadow: inset 0 -2px #000, inset 0 -4px #ff0; }
 .code { position: absolute; inset: 0; font-size: 60%; font-weight: normal; color: #fff; text-shadow: 0 0 1px #000, 0 0 1px #000, 1px 1px 0 #000, -1px -1px 0 #000; pointer-events: none; }
+/* colour codes: the mark takes the code's colour; black gets a white shadow */
+.mk-0 { color: #000; text-shadow: 0 0 1px #fff, 0 0 1px #fff, 1px 1px 0 #fff, -1px -1px 0 #fff; } .mk-1 { color: #f00; } .mk-2 { color: #0f0; } .mk-3 { color: #ff0; }
+.mk-4 { color: #00f; } .mk-5 { color: #f0f; } .mk-6 { color: #0ff; } .mk-7 { color: #fff; }
 /* large mark upper left, subscript lower right; the mosaic icon is a 2x3 checkerboard */
 .code .big { position: absolute; left: 8%; top: 0; line-height: 1; }
 .code .sub { position: absolute; right: 8%; bottom: 0; line-height: 1; }
-.code i.mo { display: block; width: 0.7em; height: 1em; background: repeating-conic-gradient(#fff 0 25%, transparent 0 50%) 0 0 / 50% 33.4%; box-shadow: 0 0 1px #000; }
+.code i.mo { display: block; width: 0.7em; height: 1em; background: repeating-conic-gradient(currentColor 0 25%, transparent 0 50%) 0 0 / 50% 33.4%; box-shadow: 0 0 1px #000; }
 </style>

@@ -159,11 +159,15 @@ export function gridText(grid: Cell[][]): string {
 }
 
 // Mark for each control code 0x00-0x1f: [large, subscript], as in the zxnet editor. MOSAIC_MARK stands for a small mosaic icon.
+// Colour codes (0x00-0x07 text, 0x10-0x17 mosaic) have an empty subscript: the mark is drawn in the code's colour instead.
 export const MOSAIC_MARK = '▦'
-const COLOUR = ['K', 'R', 'G', 'Y', 'B', 'M', 'C', 'W']
+const COLOUR = Array.from({ length: 8 })
 export const CONTROL_MARKS: readonly (readonly [string, string])[] = [
-  ...COLOUR.map((c): [string, string] => ['A', c]),
+  ...COLOUR.map((): [string, string] => ['A', '']),
   ['F', 'L'], ['S', 't'], ['E', 'X'], ['S', 'X'], ['N', 'S'], ['D', 'H'], ['D', 'W'], ['D', 'S'],
-  ...COLOUR.map((c): [string, string] => [MOSAIC_MARK, c]),
+  ...COLOUR.map((): [string, string] => [MOSAIC_MARK, '']),
   ['C', 'O'], ['C', MOSAIC_MARK], ['S', MOSAIC_MARK], ['S', 'W'], ['K', 'B'], ['N', 'B'], ['H', MOSAIC_MARK], ['R', MOSAIC_MARK],
 ]
+
+// Colour index 0-7 of a colour control code, else undefined.
+export const codeColour = (v: number) => (v < 8 || (v >= 0x10 && v < 0x18) ? v & 7 : undefined)
